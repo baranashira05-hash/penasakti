@@ -801,3 +801,74 @@ model AdCampaign {
   @@index([status])
   @@map("ad_campaigns")
 }
+
+// ==================== LIVE STREAMING ====================
+
+enum LiveStatus {
+  SCHEDULED
+  LIVE
+  PAUSED
+  ENDED
+}
+
+model LiveStream {
+  id            String     @id @default(cuid())
+  title         String
+  slug          String     @unique
+  description   String?    @db.Text
+  locationName  String?
+  latitude      Float?
+  longitude     Float?
+  city          String?
+  province      String?
+  reporterName  String
+  reporterId    String
+  thumbnail     String?
+  streamKey     String     @unique
+  playbackUrl   String?
+  recordingUrl  String?
+  quality       String     @default("720p")
+  category      String?
+  isBreaking    Boolean    @default(false)
+  isExclusive   Boolean    @default(false)
+  isEmergency   Boolean    @default(false)
+  status        LiveStatus @default(SCHEDULED)
+  viewers       Int        @default(0)
+  peakViewers   Int        @default(0)
+  scheduledAt   DateTime?
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  comments      LiveComment[]
+  reactions     LiveReaction[]
+
+  @@index([status])
+  @@index([startedAt])
+  @@map("live_streams")
+}
+
+model LiveComment {
+  id        String     @id @default(cuid())
+  liveId    String
+  live      LiveStream @relation(fields: [liveId], references: [id], onDelete: Cascade)
+  username  String
+  message   String
+  isMuted   Boolean    @default(false)
+  createdAt DateTime   @default(now())
+
+  @@index([liveId, createdAt])
+  @@map("live_comments")
+}
+
+model LiveReaction {
+  id        String     @id @default(cuid())
+  liveId    String
+  live      LiveStream @relation(fields: [liveId], references: [id], onDelete: Cascade)
+  type      String
+  createdAt DateTime   @default(now())
+
+  @@index([liveId])
+  @@map("live_reactions")
+}
