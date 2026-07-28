@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import HeroSection from "@/components/home/HeroSection";
+import LiveBanner from "@/components/home/LiveBanner";
 import BreakingSection from "@/components/home/BreakingSection";
 import TrendingSection from "@/components/home/TrendingSection";
 import LatestNews from "@/components/home/LatestNews";
@@ -57,6 +58,9 @@ export default async function HomePage() {
     <>
       {/* Hero Section */}
       <HeroSection articles={heroArticles} />
+
+      {/* Live Banner - Tampil saat ada siaran langsung */}
+      <LiveBanner />
 
       {/* Ad Banner - Header */}
       <div className="container mx-auto px-4 py-4">
