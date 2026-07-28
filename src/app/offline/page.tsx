@@ -1,12 +1,7 @@
-import { Metadata } from "next";
+"use client";
+
 import Link from "next/link";
 import { WifiOff, RefreshCw, Home, TrendingUp, Clock, ArrowLeft } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: "Offline Mode - PenaSakti",
-  description: "Anda sedang offline. Beberapa konten mungkin tidak tersedia.",
-  robots: { index: false, follow: false },
-};
 
 const OFFLINE_ARTICLES = [
   {
