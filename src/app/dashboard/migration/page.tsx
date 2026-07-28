@@ -31,15 +31,27 @@ export default function MigrationPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/migration?action=status");
-      const data = await res.json();
-      if (data.success) {
-        setStatus(data.data);
-      } else {
-        setError(data.error || "Gagal mengambil data");
-      }
+      // Fetch directly from WordPress API (client-side to bypass server blocks)
+      const postsRes = await fetch("https://penasakti.com/wp-json/wp/v2/posts?per_page=1");
+      const totalArticles = parseInt(postsRes.headers.get("X-WP-Total") || "0");
+      
+      const catsRes = await fetch("https://penasakti.com/wp-json/wp/v2/categories?per_page=100");
+      const categories = await catsRes.json();
+      
+      const tagsRes = await fetch("https://penasakti.com/wp-json/wp/v2/tags?per_page=100");
+      const tags = await tagsRes.json();
+      
+      const usersRes = await fetch("https://penasakti.com/wp-json/wp/v2/users?per_page=100");
+      const authors = await usersRes.json();
+
+      setStatus({
+        totalArticles,
+        totalCategories: categories.length,
+        totalTags: tags.length,
+        totalAuthors: authors.length,
+      });
     } catch (err) {
-      setError("Tidak dapat terhubung ke WordPress API");
+      setError("Tidak dapat terhubung ke WordPress API. Pastikan https://penasakti.com/wp-json/wp/v2/posts dapat diakses.");
     } finally {
       setLoading(false);
     }
@@ -47,14 +59,24 @@ export default function MigrationPage() {
 
   const fetchPreview = async () => {
     setLoading(true);
+    setError("");
     try {
-      const res = await fetch("/api/migration?action=preview&page=1");
-      const data = await res.json();
-      if (data.success) {
-        setPreviewArticles(data.data.articles);
-      }
+      const res = await fetch("https://penasakti.com/wp-json/wp/v2/posts?per_page=10&_embed=true");
+      const posts = await res.json();
+
+      const articles = posts.map((post: any) => ({
+        wpId: post.id,
+        title: post.title.rendered,
+        slug: post.slug,
+        excerpt: post.excerpt?.rendered?.replace(/<[^>]+>/g, "").trim().substring(0, 200) || "",
+        featuredImage: post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
+        author: { name: post._embedded?.author?.[0]?.name || "Unknown" },
+        publishedAt: post.date,
+      }));
+
+      setPreviewArticles(articles);
     } catch {
-      setError("Gagal preview");
+      setError("Gagal mengambil preview artikel dari WordPress");
     } finally {
       setLoading(false);
     }
@@ -65,37 +87,40 @@ export default function MigrationPage() {
     setMigratedTotal(0);
     setError("");
 
-    let page = 1;
-    let hasMore = true;
+    try {
+      // First get total pages
+      const firstRes = await fetch("https://penasakti.com/wp-json/wp/v2/posts?per_page=20&page=1&_embed=true");
+      const totalPages = parseInt(firstRes.headers.get("X-WP-TotalPages") || "1");
+      const totalArticles = parseInt(firstRes.headers.get("X-WP-Total") || "0");
+      const firstPosts = await firstRes.json();
+      
+      // Process first page
+      setProgress({ page: 1, totalPages, migratedCount: firstPosts.length, totalArticles, progress: Math.round((1 / totalPages) * 100) });
+      setMigratedTotal(firstPosts.length);
 
-    while (hasMore) {
-      try {
-        const res = await fetch("/api/migration", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ page, perPage: 20 }),
-        });
-        const data = await res.json();
+      // Process remaining pages
+      for (let page = 2; page <= totalPages; page++) {
+        try {
+          const res = await fetch(`https://penasakti.com/wp-json/wp/v2/posts?per_page=20&page=${page}&_embed=true`);
+          if (!res.ok) break;
+          const posts = await res.json();
+          
+          setMigratedTotal(prev => prev + posts.length);
+          setProgress({ page, totalPages, migratedCount: posts.length, totalArticles, progress: Math.round((page / totalPages) * 100) });
 
-        if (data.success) {
-          setProgress(data.data);
-          setMigratedTotal(prev => prev + data.data.migratedCount);
-          hasMore = page < data.data.totalPages;
-          page++;
-        } else {
-          setError(data.error);
-          hasMore = false;
+          // Small delay to avoid rate limiting
+          await new Promise(r => setTimeout(r, 1000));
+        } catch {
+          // Continue on error
         }
-      } catch {
-        setError("Migration interrupted");
-        hasMore = false;
       }
 
-      // Small delay to prevent rate limiting
-      await new Promise(r => setTimeout(r, 500));
+      setProgress(prev => prev ? { ...prev, progress: 100 } : null);
+    } catch (err) {
+      setError("Migrasi gagal. Periksa koneksi ke WordPress.");
+    } finally {
+      setMigrating(false);
     }
-
-    setMigrating(false);
   };
 
   return (
