@@ -1,0 +1,32 @@
+{
+  "name": "PenaSakti - Portal Berita Nasional",
+  "short_name": "PenaSakti",
+  "description": "Portal berita nasional terpercaya Indonesia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a3a6b",
+  "orientation": "portrait-primary",
+  "categories": ["news", "education"],
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/logo-penasakti.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Berita Terkini",
+      "url": "/terkini",
+      "description": "Baca berita terbaru"
+    },
+    {
+      "name": "Video",
+      "url": "/video",
+      "description": "Tonton video berita"
+    }
+  ]
+}

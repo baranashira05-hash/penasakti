@@ -1,0 +1,803 @@
+// PenaSakti - Prisma Schema
+// Portal Berita Nasional
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  JOURNALIST
+  CONTRIBUTOR
+  SEO_TEAM
+  MODERATOR
+  USER
+}
+
+enum ArticleStatus {
+  DRAFT
+  REVIEW
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+  TRASH
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  SPAM
+  TRASH
+}
+
+enum AdPosition {
+  HEADER
+  SIDEBAR
+  IN_ARTICLE
+  FOOTER
+  STICKY_BOTTOM
+  POPUP
+}
+
+enum AdStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  INFOGRAPHIC
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  bio           String?   @db.Text
+  phone         String?
+  website       String?
+  twitter       String?
+  instagram     String?
+  facebook      String?
+  isActive      Boolean   @default(true)
+  isBanned      Boolean   @default(false)
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  articles      Article[]  @relation("ArticleAuthor")
+  editedArticles Article[] @relation("ArticleEditor")
+  comments      Comment[]
+  bookmarks     Bookmark[]
+  notifications Notification[]
+  loginHistory  LoginHistory[]
+  authorProfile AuthorProfile?
+  readingList   ReadingList[]
+  sellerProfile SellerProfile?
+  rewards       UserReward[]
+  advertiserProfile AdvertiserProfile?
+
+  @@map("users")
+}
+
+model AuthorProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug        String   @unique
+  displayName String
+  bio         String?  @db.Text
+  avatar      String?
+  coverImage  String?
+  expertise   String[]
+  totalArticles Int    @default(0)
+  totalViews  BigInt   @default(0)
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("author_profiles")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  country   String?
+  city      String?
+  createdAt DateTime @default(now())
+
+  @@map("login_history")
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?    @db.Text
+  image       String?
+  color       String?
+  icon        String?
+  parentId    String?
+  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryChildren")
+  order       Int        @default(0)
+  isActive    Boolean    @default(true)
+  metaTitle   String?
+  metaDesc    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  articles    Article[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  color     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  articles  ArticleTag[]
+
+  @@map("tags")
+}
+
+model Article {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  excerpt         String?       @db.Text
+  content         String        @db.Text
+  featuredImage   String?
+  featuredImageAlt String?
+  status          ArticleStatus @default(DRAFT)
+  isBreaking      Boolean       @default(false)
+  isFeatured      Boolean       @default(false)
+  isEditorChoice  Boolean       @default(false)
+  isPremium       Boolean       @default(false)
+  isSponsored     Boolean       @default(false)
+  allowComments   Boolean       @default(true)
+  
+  // SEO
+  metaTitle       String?
+  metaDesc        String?
+  metaKeywords    String?
+  canonicalUrl    String?
+  ogImage         String?
+  ogTitle         String?
+  ogDesc          String?
+  
+  // Metrics
+  viewCount       BigInt        @default(0)
+  shareCount      Int           @default(0)
+  likeCount       Int           @default(0)
+  commentCount    Int           @default(0)
+  readTime        Int           @default(0)
+  
+  // Scheduling
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  
+  // Relations
+  authorId        String
+  author          User          @relation("ArticleAuthor", fields: [authorId], references: [id])
+  editorId        String?
+  editor          User?         @relation("ArticleEditor", fields: [editorId], references: [id])
+  categoryId      String
+  category        Category      @relation(fields: [categoryId], references: [id])
+  
+  // Source
+  source          String?
+  sourceUrl       String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  tags            ArticleTag[]
+  comments        Comment[]
+  revisions       ArticleRevision[]
+  bookmarks       Bookmark[]
+  readingList     ReadingList[]
+  relatedArticles ArticleRelation[] @relation("ArticleRelations")
+  relatedTo       ArticleRelation[] @relation("RelatedArticles")
+  media           ArticleMedia[]
+  rewards         UserReward[]
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([slug])
+  @@map("articles")
+}
+
+model ArticleTag {
+  articleId String
+  tagId     String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+model ArticleRelation {
+  articleId  String
+  relatedId  String
+  article    Article @relation("ArticleRelations", fields: [articleId], references: [id], onDelete: Cascade)
+  related    Article @relation("RelatedArticles", fields: [relatedId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, relatedId])
+  @@map("article_relations")
+}
+
+model ArticleRevision {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @db.Text
+  excerpt   String?  @db.Text
+  version   Int
+  createdAt DateTime @default(now())
+  createdBy String
+
+  @@map("article_revisions")
+}
+
+model ArticleMedia {
+  id        String    @id @default(cuid())
+  articleId String
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media     @relation(fields: [mediaId], references: [id])
+  order     Int       @default(0)
+
+  @@map("article_media")
+}
+
+model Media {
+  id          String    @id @default(cuid())
+  name        String
+  fileName    String
+  url         String
+  publicId    String?
+  mimeType    String
+  size        Int
+  width       Int?
+  height      Int?
+  alt         String?
+  caption     String?
+  type        MediaType @default(IMAGE)
+  folderId    String?
+  folder      MediaFolder? @relation(fields: [folderId], references: [id])
+  uploadedBy  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  articles    ArticleMedia[]
+
+  @@map("media")
+}
+
+model MediaFolder {
+  id        String        @id @default(cuid())
+  name      String
+  parentId  String?
+  parent    MediaFolder?  @relation("FolderChildren", fields: [parentId], references: [id])
+  children  MediaFolder[] @relation("FolderChildren")
+  createdAt DateTime      @default(now())
+  media     Media[]
+
+  @@map("media_folders")
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  content   String        @db.Text
+  status    CommentStatus @default(PENDING)
+  articleId String
+  article   Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  guestName  String?
+  guestEmail String?
+  parentId  String?
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentReplies")
+  likeCount Int           @default(0)
+  isSpam    Boolean       @default(false)
+  ipAddress String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("comments")
+}
+
+model Advertisement {
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @db.Text
+  position    AdPosition
+  status      AdStatus  @default(ACTIVE)
+  startDate   DateTime?
+  endDate     DateTime?
+  impressions Int       @default(0)
+  clicks      Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("advertisements")
+}
+
+model Newsletter {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  isVerified  Boolean  @default(false)
+  token       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("newsletters")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("info")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, articleId])
+  @@map("bookmarks")
+}
+
+model ReadingList {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, articleId])
+  @@map("reading_lists")
+}
+
+model Analytics {
+  id         String   @id @default(cuid())
+  articleId  String?
+  page       String
+  referrer   String?
+  userAgent  String?
+  ipAddress  String?
+  country    String?
+  city       String?
+  device     String?
+  browser    String?
+  os         String?
+  sessionId  String?
+  duration   Int?
+  createdAt  DateTime @default(now())
+
+  @@index([articleId, createdAt])
+  @@index([createdAt])
+  @@map("analytics")
+}
+
+model Poll {
+  id        String       @id @default(cuid())
+  question  String
+  isActive  Boolean      @default(true)
+  endsAt    DateTime?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  options   PollOption[]
+
+  @@map("polls")
+}
+
+model PollOption {
+  id      String @id @default(cuid())
+  pollId  String
+  poll    Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text    String
+  votes   Int    @default(0)
+
+  @@map("poll_options")
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String?  @db.Text
+  thumbnail   String?
+  url         String?
+  youtubeId   String?
+  duration    Int?
+  viewCount   BigInt   @default(0)
+  categoryId  String?
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("videos")
+}
+
+model Podcast {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String?  @db.Text
+  audioUrl    String
+  thumbnail   String?
+  duration    Int?
+  episode     Int?
+  season      Int?
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("podcasts")
+}
+
+model SiteSettings {
+  id              String   @id @default(cuid())
+  siteName        String   @default("PenaSakti")
+  siteUrl         String   @default("https://penasakti.com")
+  siteDescription String?  @db.Text
+  siteLogo        String?
+  siteFavicon     String?
+  socialFacebook  String?
+  socialTwitter   String?
+  socialInstagram String?
+  socialYoutube   String?
+  googleAnalytics String?
+  googleAdsense   String?
+  footerText      String?  @db.Text
+  maintenanceMode Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// ==================== STORE ====================
+
+enum SellerStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  SOLD_OUT
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+model SellerProfile {
+  id            String       @id @default(cuid())
+  userId        String       @unique
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeName     String
+  storeSlug     String       @unique
+  storeDesc     String?      @db.Text
+  storeLogo     String?
+  storeBanner   String?
+  phone         String
+  address       String?      @db.Text
+  city          String?
+  province      String?
+  bankName      String?
+  bankAccount   String?
+  bankHolder    String?
+  status        SellerStatus @default(PENDING)
+  totalSales    Int          @default(0)
+  totalRevenue  BigInt       @default(0)
+  rating        Float        @default(0)
+  ratingCount   Int          @default(0)
+  joinedAt      DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  products      Product[]
+  orders        Order[]
+
+  @@map("seller_profiles")
+}
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  icon      String?
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  products  Product[]
+
+  @@map("product_categories")
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  sellerId      String
+  seller        SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId    String
+  category      ProductCategory @relation(fields: [categoryId], references: [id])
+  name          String
+  slug          String        @unique
+  description   String        @db.Text
+  price         BigInt
+  comparePrice  BigInt?
+  stock         Int           @default(0)
+  images        String[]
+  status        ProductStatus @default(DRAFT)
+  weight        Int?
+  sku           String?
+  viewCount     Int           @default(0)
+  soldCount     Int           @default(0)
+  rating        Float         @default(0)
+  ratingCount   Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  orderItems    OrderItem[]
+  reviews       ProductReview[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("products")
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  buyerName       String
+  buyerEmail      String
+  buyerPhone      String
+  shippingAddress String      @db.Text
+  sellerId        String
+  seller          SellerProfile @relation(fields: [sellerId], references: [id])
+  subtotal        BigInt
+  platformFee     BigInt
+  shippingCost    BigInt      @default(0)
+  totalAmount     BigInt
+  status          OrderStatus @default(PENDING_PAYMENT)
+  paymentMethod   String?
+  paymentUrl      String?
+  paymentRef      String?
+  duitkuRef       String?
+  paidAt          DateTime?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  completedAt     DateTime?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           OrderItem[]
+
+  @@index([sellerId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  productName String
+  quantity    Int
+  price       BigInt
+  total       BigInt
+
+  @@map("order_items")
+}
+
+model ProductReview {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userName  String
+  userEmail String
+  rating    Int
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@map("product_reviews")
+}
+
+// ==================== USER REWARDS ====================
+
+enum RewardStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+model UserReward {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId   String
+  article     Article      @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  amount      BigInt
+  reason      String
+  status      RewardStatus @default(PENDING)
+  paidAt      DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([userId, articleId, reason])
+  @@map("user_rewards")
+}
+
+// ==================== ADVERTISER ====================
+
+enum AdvertiserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum AdCampaignStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+model AdvertiserProfile {
+  id            String           @id @default(cuid())
+  userId        String           @unique
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName   String
+  companySlug   String           @unique
+  companyDesc   String?          @db.Text
+  companyLogo   String?
+  website       String?
+  phone         String
+  address       String?          @db.Text
+  contactPerson String
+  npwp          String?
+  status        AdvertiserStatus @default(PENDING)
+  totalSpent    BigInt           @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  campaigns     AdCampaign[]
+
+  @@map("advertiser_profiles")
+}
+
+model AdCampaign {
+  id            String           @id @default(cuid())
+  advertiserId  String
+  advertiser    AdvertiserProfile @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  name          String
+  type          String           @default("BANNER")
+  position      AdPosition
+  imageUrl      String?
+  linkUrl       String?
+  htmlCode      String?          @db.Text
+  startDate     DateTime
+  endDate       DateTime
+  budget        BigInt
+  dailyBudget   BigInt?
+  status        AdCampaignStatus @default(DRAFT)
+  impressions   Int              @default(0)
+  clicks        Int              @default(0)
+  ctr           Float            @default(0)
+  paymentRef    String?
+  paidAt        DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([advertiserId])
+  @@index([status])
+  @@map("ad_campaigns")
+}

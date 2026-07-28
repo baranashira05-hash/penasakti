@@ -1,0 +1,1 @@
+﻿export default function Page() { return <div className='p-8'><h1 className='text-2xl font-bold'>Halaman dalam pengembangan</h1><p className='text-muted-foreground'>Fitur ini akan segera tersedia.</p></div>; }
