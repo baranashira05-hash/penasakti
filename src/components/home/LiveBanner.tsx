@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Radio, Eye, MapPin, ChevronRight } from "lucide-react";
+import { Radio, Eye, MapPin, Play, ChevronRight } from "lucide-react";
 
 const DEMO_LIVE = {
   title: "Breaking: Banjir Bandang Terjang Kota Bandung, Ratusan Warga Dievakuasi",
@@ -10,14 +10,13 @@ const DEMO_LIVE = {
   locationName: "Bandung Selatan, Jawa Barat",
   reporterName: "Ahmad Fauzi",
   viewers: 3842,
-  thumbnail: "https://picsum.photos/seed/livebanner/800/400",
+  thumbnail: "https://picsum.photos/seed/livebanner/1200/400",
   isBreaking: true,
   category: "Bencana",
 };
 
 export default function LiveBanner() {
   const [viewers, setViewers] = useState(DEMO_LIVE.viewers);
-  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const i = setInterval(() => {
@@ -26,60 +25,61 @@ export default function LiveBanner() {
     return () => clearInterval(i);
   }, []);
 
-  if (!isVisible) return null;
-
   return (
-    <Link
-      href={`/live`}
-      className="block group"
-    >
-      <div className="container mx-auto px-4 py-3">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 via-red-700 to-rose-800 p-4 md:p-5 text-white shadow-lg shadow-red-500/20 hover:shadow-red-500/30 transition-shadow">
-          {/* Background image */}
-          <div className="absolute inset-0 opacity-20">
-            <img src={DEMO_LIVE.thumbnail} alt="" className="w-full h-full object-cover" />
+    <div className="container mx-auto px-4 py-4">
+      <Link href="/live" className="block group">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-rose-700 text-white shadow-xl shadow-red-600/20 hover:shadow-red-600/40 transition-all">
+          {/* Background thumbnail */}
+          <div className="absolute inset-0">
+            <img src={DEMO_LIVE.thumbnail} alt="" className="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-r from-red-800/90 via-red-700/80 to-red-800/70" />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-r from-red-700/90 via-red-700/70 to-transparent" />
 
-          <div className="relative flex items-center gap-4">
-            {/* Live badge */}
-            <div className="flex-shrink-0 hidden sm:flex flex-col items-center gap-1">
-              <span className="flex items-center gap-1.5 bg-white text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                LIVE
-              </span>
-              <span className="text-[10px] text-white/60">SEKARANG</span>
+          {/* Content */}
+          <div className="relative p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center gap-4">
+            {/* Left: Live indicator */}
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+                  <Play className="w-7 h-7 fill-white ml-0.5" />
+                </div>
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-ping" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-400 rounded-full" />
+              </div>
+              <div className="md:hidden">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="bg-white text-red-600 text-[10px] font-extrabold px-2 py-0.5 rounded">LIVE</span>
+                  {DEMO_LIVE.isBreaking && <span className="bg-amber-400 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded">BREAKING</span>}
+                </div>
+              </div>
             </div>
 
-            {/* Content */}
+            {/* Middle: Info */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1 sm:hidden">
-                <span className="flex items-center gap-1 bg-white/20 text-xs font-bold px-2 py-0.5 rounded">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
-                </span>
-                {DEMO_LIVE.isBreaking && (
-                  <span className="bg-amber-400 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded">BREAKING</span>
-                )}
+              <div className="hidden md:flex items-center gap-2 mb-1.5">
+                <span className="bg-white text-red-600 text-[10px] font-extrabold px-2.5 py-1 rounded">🔴 LIVE SEKARANG</span>
+                {DEMO_LIVE.isBreaking && <span className="bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-1 rounded">BREAKING NEWS</span>}
+                <span className="bg-white/20 text-[10px] font-medium px-2 py-1 rounded">{DEMO_LIVE.category}</span>
               </div>
-              <h3 className="font-bold text-sm md:text-base line-clamp-1 group-hover:underline">
+              <h3 className="font-bold text-base md:text-lg leading-snug line-clamp-2 group-hover:underline decoration-2 underline-offset-2">
                 {DEMO_LIVE.title}
               </h3>
-              <div className="flex items-center gap-3 mt-1 text-white/70 text-xs">
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{DEMO_LIVE.locationName}</span>
-                <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{viewers.toLocaleString()} menonton</span>
-                <span className="hidden md:inline">Reporter: {DEMO_LIVE.reporterName}</span>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-white/70 text-xs">
+                <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-red-300" />{DEMO_LIVE.locationName}</span>
+                <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /><strong className="text-white">{viewers.toLocaleString()}</strong> menonton</span>
+                <span>Reporter: {DEMO_LIVE.reporterName}</span>
               </div>
             </div>
 
-            {/* CTA */}
-            <div className="flex-shrink-0 flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl transition-colors">
+            {/* Right: CTA */}
+            <div className="hidden md:flex items-center gap-2 bg-white text-red-700 px-5 py-3 rounded-xl font-bold text-sm group-hover:bg-red-50 transition-colors flex-shrink-0">
               <Radio className="w-4 h-4" />
-              <span className="text-sm font-semibold hidden md:inline">Tonton Live</span>
+              Tonton Live
               <ChevronRight className="w-4 h-4" />
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

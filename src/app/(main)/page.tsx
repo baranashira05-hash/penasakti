@@ -59,8 +59,10 @@ export default async function HomePage() {
       {/* Hero Section */}
       <HeroSection articles={heroArticles} />
 
-      {/* Live Banner - Tampil saat ada siaran langsung */}
-      <LiveBanner />
+      {/* 🔴 Live Banner - Tampil saat ada siaran langsung */}
+      <div className="bg-gray-900 dark:bg-black">
+        <LiveBanner />
+      </div>
 
       {/* Ad Banner - Header */}
       <div className="container mx-auto px-4 py-4">
