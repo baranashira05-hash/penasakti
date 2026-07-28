@@ -5,12 +5,11 @@ import { Pool } from "pg";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient(): PrismaClient {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.DATABASE_URL || process.env.DIRECT_URL;
 
-  if (!databaseUrl) {
-    // During build time without DB, return a client that will error on actual queries
-    // but won't crash during module initialization
-    const pool = new Pool({ connectionString: "postgresql://build:build@localhost:5432/build" });
+  if (!databaseUrl || databaseUrl.includes("localhost") || databaseUrl.includes("build:build")) {
+    // No real DB configured - create dummy client that errors on queries
+    const pool = new Pool({ connectionString: "postgresql://x:x@localhost:5432/x" });
     const adapter = new PrismaPg(pool);
     return new PrismaClient({ adapter });
   }
@@ -19,7 +18,7 @@ function createPrismaClient(): PrismaClient {
     connectionString: databaseUrl,
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 10000,
   });
 
   const adapter = new PrismaPg(pool);
