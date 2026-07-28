@@ -77,12 +77,12 @@ export default function HeroSection({ articles }: HeroSectionProps) {
 
   return (
     <section className="bg-background">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Main Slider */}
           <div className="lg:col-span-2">
             <div
-              className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-muted"
+              className="relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-[16/9] bg-muted"
               onMouseEnter={() => setIsAutoplay(false)}
               onMouseLeave={() => setIsAutoplay(true)}
             >
@@ -113,24 +113,24 @@ export default function HeroSection({ articles }: HeroSectionProps) {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
                       {/* Content */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 pb-5 sm:pb-6 text-white">
                         <Link
                           href={`/kategori/${article.category?.slug || ""}`}
-                          className="inline-block bg-penasakti-red px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 hover:bg-red-600 transition-colors"
+                          className="inline-block bg-red-600 px-3 py-1 rounded text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3 hover:bg-red-700 transition-colors"
                         >
                           {article.category?.name}
                         </Link>
                         <Link href={`/artikel/${article.slug}`}>
-                          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 hover:text-yellow-300 transition-colors line-clamp-3">
+                          <h2 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold mb-1.5 sm:mb-2 hover:text-yellow-300 transition-colors line-clamp-2 sm:line-clamp-3 leading-snug">
                             {article.title}
                           </h2>
                         </Link>
                         {article.excerpt && (
-                          <p className="text-white/70 text-sm line-clamp-2 mb-3 hidden sm:block">
+                          <p className="text-white/70 text-xs sm:text-sm line-clamp-2 mb-2 sm:mb-3 hidden sm:block">
                             {article.excerpt}
                           </p>
                         )}
-                        <div className="flex items-center gap-4 text-white/60 text-xs">
+                        <div className="flex items-center gap-3 sm:gap-4 text-white/60 text-[10px] sm:text-xs">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {article.publishedAt && <RelativeTime date={article.publishedAt} />}
@@ -194,14 +194,14 @@ export default function HeroSection({ articles }: HeroSectionProps) {
           </div>
 
           {/* Side Articles */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:gap-3">
             {sideArticles.map((article) => (
               <Link
                 key={article.id}
                 href={`/artikel/${article.slug}`}
-                className="group flex gap-3 p-3 rounded-xl hover:bg-muted/60 transition-all"
+                className="group flex gap-3 p-2.5 sm:p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 border border-transparent hover:border-gray-200 dark:hover:border-slate-700 transition-all"
               >
-                <div className="relative w-24 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+                <div className="relative w-20 h-16 sm:w-24 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
                   {article.featuredImage ? (
                     <Image
                       src={article.featuredImage}
@@ -211,20 +211,17 @@ export default function HeroSection({ articles }: HeroSectionProps) {
                       sizes="96px"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-penasakti-blue/20 to-penasakti-red/20" />
+                    <div className="w-full h-full bg-gradient-to-br from-blue-100 to-red-100 dark:from-blue-900/30 dark:to-red-900/30" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span
-                    className="text-xs font-bold uppercase tracking-wider"
-                    style={{ color: article.category?.color || "#1a3a6b" }}
-                  >
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider" style={{ color: article.category?.color || "#2563eb" }}>
                     {article.category?.name}
                   </span>
-                  <h3 className="text-sm font-semibold line-clamp-3 mt-0.5 group-hover:text-penasakti-blue transition-colors leading-snug">
+                  <h3 className="text-xs sm:text-sm font-semibold line-clamp-2 sm:line-clamp-3 mt-0.5 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
                     {article.title}
                   </h3>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {article.publishedAt && <RelativeTime date={article.publishedAt} />}
                   </p>
                 </div>

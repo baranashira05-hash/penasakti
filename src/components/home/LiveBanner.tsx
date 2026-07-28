@@ -26,9 +26,9 @@ export default function LiveBanner() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-4">
+    <div className="container mx-auto px-4 py-3 sm:py-4">
       <Link href="/live" className="block group">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-rose-700 text-white shadow-xl shadow-red-600/20 hover:shadow-red-600/40 transition-all">
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-rose-700 text-white shadow-lg shadow-red-600/20 hover:shadow-red-600/40 transition-all">
           {/* Background thumbnail */}
           <div className="absolute inset-0">
             <img src={DEMO_LIVE.thumbnail} alt="" className="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700" />
@@ -36,7 +36,7 @@ export default function LiveBanner() {
           </div>
 
           {/* Content */}
-          <div className="relative p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center gap-4">
+          <div className="relative p-4 sm:p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
             {/* Left: Live indicator */}
             <div className="flex items-center gap-3">
               <div className="relative">
