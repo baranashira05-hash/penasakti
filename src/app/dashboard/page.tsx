@@ -88,7 +88,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {STATS.map((stat) => (
           <div key={stat.label} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
@@ -100,8 +100,8 @@ export default function DashboardPage() {
                 {stat.change}
               </span>
             </div>
-            <p className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</p>
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{stat.label}</p>
+            <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">{stat.value}</p>
+            <p className="text-[10px] sm:text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{stat.label}</p>
           </div>
         ))}
       </div>
