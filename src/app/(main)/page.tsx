@@ -22,32 +22,58 @@ export const dynamic = "force-dynamic";
 
 async function getHomeData() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const [heroRes, latestRes, trendingRes] = await Promise.allSettled([
-      fetch(`${baseUrl}/api/articles?status=PUBLISHED&featured=true&limit=5`, {
-        next: { revalidate: 60 },
+    const { default: prisma } = await import("@/lib/prisma");
+
+    const [heroArticles, latestArticles, trendingArticles] = await Promise.all([
+      prisma.article.findMany({
+        where: { status: "PUBLISHED" },
+        orderBy: { publishedAt: "desc" },
+        take: 5,
+        include: {
+          author: { select: { id: true, name: true, image: true } },
+          category: { select: { id: true, name: true, slug: true, color: true } },
+          tags: { select: { tag: { select: { id: true, name: true, slug: true } } }, take: 3 },
+        },
       }),
-      fetch(`${baseUrl}/api/articles?status=PUBLISHED&limit=12`, {
-        next: { revalidate: 60 },
+      prisma.article.findMany({
+        where: { status: "PUBLISHED" },
+        orderBy: { publishedAt: "desc" },
+        take: 12,
+        include: {
+          author: { select: { id: true, name: true, image: true } },
+          category: { select: { id: true, name: true, slug: true, color: true } },
+          tags: { select: { tag: { select: { id: true, name: true, slug: true } } }, take: 3 },
+        },
       }),
-      fetch(`${baseUrl}/api/articles?status=PUBLISHED&sort=views&limit=10`, {
-        next: { revalidate: 300 },
+      prisma.article.findMany({
+        where: { status: "PUBLISHED" },
+        orderBy: { viewCount: "desc" },
+        take: 10,
+        include: {
+          author: { select: { id: true, name: true, image: true } },
+          category: { select: { id: true, name: true, slug: true, color: true } },
+        },
       }),
     ]);
 
+    // Serialize BigInt
+    const serialize = (articles: any[]) => articles.map(a => ({
+      ...a,
+      viewCount: Number(a.viewCount || 0),
+      shareCount: Number(a.shareCount || 0),
+      likeCount: Number(a.likeCount || 0),
+    }));
+
     return {
-      heroArticles: heroRes.status === "fulfilled" && heroRes.value.ok
-        ? (await heroRes.value.json()).data || []
-        : [],
-      latestArticles: latestRes.status === "fulfilled" && latestRes.value.ok
-        ? (await latestRes.value.json()).data || []
-        : [],
-      trendingArticles: trendingRes.status === "fulfilled" && trendingRes.value.ok
-        ? (await trendingRes.value.json()).data || []
-        : [],
+      heroArticles: serialize(heroArticles),
+      latestArticles: serialize(latestArticles),
+      trendingArticles: serialize(trendingArticles),
     };
-  } catch {
+  } catch (error) {
+    console.error("getHomeData error:", error);
     return { heroArticles: [], latestArticles: [], trendingArticles: [] };
+  }
+}
   }
 }
 
