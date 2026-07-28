@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 // ISR - revalidate every 60 seconds
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 async function getHomeData() {
   try {
