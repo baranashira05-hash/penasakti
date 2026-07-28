@@ -92,26 +92,48 @@ export default function MigrationPage() {
       const firstRes = await fetch("https://penasakti.com/wp-json/wp/v2/posts?per_page=20&page=1&_embed=true");
       const totalPages = parseInt(firstRes.headers.get("X-WP-TotalPages") || "1");
       const totalArticles = parseInt(firstRes.headers.get("X-WP-Total") || "0");
-      const firstPosts = await firstRes.json();
       
-      // Process first page
-      setProgress({ page: 1, totalPages, migratedCount: firstPosts.length, totalArticles, progress: Math.round((1 / totalPages) * 100) });
-      setMigratedTotal(firstPosts.length);
-
-      // Process remaining pages
-      for (let page = 2; page <= totalPages; page++) {
+      for (let page = 1; page <= totalPages; page++) {
         try {
           const res = await fetch(`https://penasakti.com/wp-json/wp/v2/posts?per_page=20&page=${page}&_embed=true`);
           if (!res.ok) break;
           const posts = await res.json();
-          
-          setMigratedTotal(prev => prev + posts.length);
+
+          // Transform posts to our format
+          const articles = posts.map((post: any) => ({
+            title: post.title?.rendered || "",
+            slug: post.slug,
+            content: post.content?.rendered || "",
+            excerpt: post.excerpt?.rendered?.replace(/<[^>]+>/g, "").trim() || "",
+            featuredImage: post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
+            authorName: post._embedded?.author?.[0]?.name || "Redaksi",
+            categoryName: post._embedded?.["wp:term"]?.[0]?.[0]?.name || null,
+            tags: post._embedded?.["wp:term"]?.[1]?.map((t: any) => t.name) || [],
+            publishedAt: post.date,
+            metaTitle: post.yoast_head_json?.title || post.title?.rendered || "",
+            metaDesc: post.yoast_head_json?.description || "",
+            ogImage: post.yoast_head_json?.og_image?.[0]?.url || null,
+          }));
+
+          // Send to our API to save to Supabase
+          const importRes = await fetch("/api/migration/import", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ articles }),
+          });
+          const importData = await importRes.json();
+
+          if (importData.success) {
+            setMigratedTotal(prev => prev + importData.data.imported);
+          }
+
           setProgress({ page, totalPages, migratedCount: posts.length, totalArticles, progress: Math.round((page / totalPages) * 100) });
 
-          // Small delay to avoid rate limiting
-          await new Promise(r => setTimeout(r, 1000));
-        } catch {
-          // Continue on error
+          // Delay to avoid rate limiting
+          await new Promise(r => setTimeout(r, 1500));
+        } catch (err) {
+          // Continue on individual page error
+          console.error(`Page ${page} error:`, err);
         }
       }
 
