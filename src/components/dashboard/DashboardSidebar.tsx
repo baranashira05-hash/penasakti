@@ -43,6 +43,7 @@ const navItems: NavItem[] = [
   { label: "Notifikasi", href: "/dashboard/notifikasi", icon: Bell },
   { label: "Task", href: "/dashboard/task", icon: ClipboardList },
   { label: "Keamanan", href: "/dashboard/keamanan", icon: Shield, roles: ["SUPER_ADMIN"] },
+  { label: "Migrasi WP", href: "/dashboard/migration", icon: Globe, roles: ["SUPER_ADMIN"] },
   { label: "Pengaturan", href: "/dashboard/pengaturan", icon: Settings },
 ];
 
