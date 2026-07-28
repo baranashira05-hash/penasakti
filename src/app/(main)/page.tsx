@@ -19,30 +19,41 @@ export const metadata: Metadata = {
 // ISR - revalidate every 60 seconds
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
 async function getHomeData() {
   try {
-    const prismaModule = await import("@/lib/prisma");
-    const db = prismaModule.default;
+    const prisma = (await import("@/lib/prisma")).default;
 
-    const articles = await db.article.findMany({
+    const articles = await prisma.article.findMany({
       where: { status: "PUBLISHED" },
       orderBy: { publishedAt: "desc" },
       take: 12,
-      include: {
-        author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, name: true, slug: true, color: true } },
-        tags: { select: { tag: { select: { id: true, name: true, slug: true } } }, take: 3 },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        featuredImage: true,
+        isBreaking: true,
+        isFeatured: true,
+        status: true,
+        viewCount: true,
+        commentCount: true,
+        readTime: true,
+        publishedAt: true,
+        authorId: true,
+        categoryId: true,
       },
     });
 
-    // Serialize BigInt fields
+    // Serialize BigInt and add mock relations for display
     const serialized = articles.map((a: any) => ({
       ...a,
       viewCount: Number(a.viewCount || 0),
-      shareCount: Number(a.shareCount || 0),
-      likeCount: Number(a.likeCount || 0),
+      commentCount: Number(a.commentCount || 0),
+      category: { id: a.categoryId || "1", name: "Berita", slug: "berita", color: "#e74c3c" },
+      author: { id: a.authorId || "1", name: "Redaksi PenaSakti", image: null },
+      tags: [],
     }));
 
     return {
@@ -51,7 +62,7 @@ async function getHomeData() {
       trendingArticles: serialized.slice(0, 10),
     };
   } catch (error) {
-    console.error("HOME DATA ERROR:", error);
+    console.error("HOME ERROR:", error);
     return { heroArticles: [], latestArticles: [], trendingArticles: [] };
   }
 }
