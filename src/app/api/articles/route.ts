@@ -48,11 +48,19 @@ export async function GET(request: NextRequest) {
       prisma.article.count({ where }),
     ]);
 
+    // Convert BigInt to Number for JSON serialization
+    const serializedArticles = articles.map((a) => ({
+      ...a,
+      viewCount: Number(a.viewCount),
+      shareCount: Number(a.shareCount),
+      likeCount: Number(a.likeCount),
+    }));
+
     const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
       success: true,
-      data: articles,
+      data: serializedArticles,
       meta: { total, page, limit, totalPages, hasNextPage: page < totalPages, hasPrevPage: page > 1 },
     });
   } catch (error) {
