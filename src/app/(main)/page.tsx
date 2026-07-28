@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import prisma from "@/lib/prisma";
 import HeroSection from "@/components/home/HeroSection";
 import LiveBanner from "@/components/home/LiveBanner";
 import BreakingSection from "@/components/home/BreakingSection";
@@ -23,51 +22,49 @@ export const dynamic = "force-dynamic";
 
 async function getHomeData() {
   try {
-    const [heroArticles, latestArticles, trendingArticles] = await Promise.all([
-      prisma.article.findMany({
-        where: { status: "PUBLISHED" },
-        orderBy: { publishedAt: "desc" },
-        take: 5,
-        include: {
-          author: { select: { id: true, name: true, image: true } },
-          category: { select: { id: true, name: true, slug: true, color: true } },
-          tags: { select: { tag: { select: { id: true, name: true, slug: true } } }, take: 3 },
-        },
-      }),
-      prisma.article.findMany({
-        where: { status: "PUBLISHED" },
-        orderBy: { publishedAt: "desc" },
-        take: 12,
-        include: {
-          author: { select: { id: true, name: true, image: true } },
-          category: { select: { id: true, name: true, slug: true, color: true } },
-          tags: { select: { tag: { select: { id: true, name: true, slug: true } } }, take: 3 },
-        },
-      }),
-      prisma.article.findMany({
-        where: { status: "PUBLISHED" },
-        orderBy: { viewCount: "desc" },
-        take: 10,
-        include: {
-          author: { select: { id: true, name: true, image: true } },
-          category: { select: { id: true, name: true, slug: true, color: true } },
-        },
-      }),
-    ]);
-
-    // Serialize BigInt
-    const serialize = (articles: any[]) => articles.map(a => ({
-      ...a,
-      viewCount: Number(a.viewCount || 0),
-      shareCount: Number(a.shareCount || 0),
-      likeCount: Number(a.likeCount || 0),
-    }));
-
-    return {
-      heroArticles: serialize(heroArticles),
-      latestArticles: serialize(latestArticles),
-      trendingArticles: serialize(trendingArticles),
-    };
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+    
+    const res = await fetch(`${baseUrl}/api/test-articles`, { cache: "no-store" });
+    
+    if (res.ok) {
+      const json = await res.json();
+      if (json.articles && json.articles.length > 0) {
+        // test-articles only returns basic fields, fetch full from articles API
+        const fullRes = await fetch(`${baseUrl}/api/articles?limit=12`, { cache: "no-store" });
+        if (fullRes.ok) {
+          const fullJson = await fullRes.json();
+          if (fullJson.data && fullJson.data.length > 0) {
+            return {
+              heroArticles: fullJson.data.slice(0, 5),
+              latestArticles: fullJson.data,
+              trendingArticles: fullJson.data.slice(0, 10),
+            };
+          }
+        }
+        // Fallback: use test-articles data directly
+        const articles = json.articles.map((a: any) => ({
+          ...a,
+          viewCount: 0,
+          shareCount: 0,
+          likeCount: 0,
+          commentCount: 0,
+          readTime: 3,
+          excerpt: "",
+          featuredImage: null,
+          isBreaking: false,
+          isFeatured: false,
+          category: { id: "1", name: "Berita", slug: "berita", color: "#e74c3c" },
+          author: { id: "1", name: "Redaksi", image: null },
+          tags: [],
+        }));
+        return {
+          heroArticles: articles.slice(0, 5),
+          latestArticles: articles,
+          trendingArticles: articles,
+        };
+      }
+    }
+    return { heroArticles: [], latestArticles: [], trendingArticles: [] };
   } catch (error) {
     console.error("getHomeData error:", error);
     return { heroArticles: [], latestArticles: [], trendingArticles: [] };
