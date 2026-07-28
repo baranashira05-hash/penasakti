@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import prisma from "@/lib/prisma";
 import HeroSection from "@/components/home/HeroSection";
 import LiveBanner from "@/components/home/LiveBanner";
 import BreakingSection from "@/components/home/BreakingSection";
@@ -22,8 +23,6 @@ export const dynamic = "force-dynamic";
 
 async function getHomeData() {
   try {
-    const { default: prisma } = await import("@/lib/prisma");
-
     const [heroArticles, latestArticles, trendingArticles] = await Promise.all([
       prisma.article.findMany({
         where: { status: "PUBLISHED" },
