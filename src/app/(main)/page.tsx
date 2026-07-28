@@ -22,47 +22,27 @@ export const dynamic = "force-dynamic";
 
 async function getHomeData() {
   try {
-    const prisma = (await import("@/lib/prisma")).default;
+    // Use internal fetch with absolute URL - works on Vercel with VERCEL_URL
+    const host = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    const articles = await prisma.article.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { publishedAt: "desc" },
-      take: 12,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        excerpt: true,
-        featuredImage: true,
-        isBreaking: true,
-        isFeatured: true,
-        status: true,
-        viewCount: true,
-        commentCount: true,
-        readTime: true,
-        publishedAt: true,
-        authorId: true,
-        categoryId: true,
-      },
+    const res = await fetch(`${host}/api/articles?limit=12`, {
+      cache: "no-store",
+      headers: { "x-internal": "1" },
     });
 
-    // Serialize BigInt and add mock relations for display
-    const serialized = articles.map((a: any) => ({
-      ...a,
-      viewCount: Number(a.viewCount || 0),
-      commentCount: Number(a.commentCount || 0),
-      category: { id: a.categoryId || "1", name: "Berita", slug: "berita", color: "#e74c3c" },
-      author: { id: a.authorId || "1", name: "Redaksi PenaSakti", image: null },
-      tags: [],
-    }));
+    if (!res.ok) return { heroArticles: [], latestArticles: [], trendingArticles: [] };
+
+    const json = await res.json();
+    const articles = json.data || [];
 
     return {
-      heroArticles: serialized.slice(0, 5),
-      latestArticles: serialized,
-      trendingArticles: serialized.slice(0, 10),
+      heroArticles: articles.slice(0, 5),
+      latestArticles: articles,
+      trendingArticles: articles.slice(0, 10),
     };
   } catch (error) {
-    console.error("HOME ERROR:", error);
     return { heroArticles: [], latestArticles: [], trendingArticles: [] };
   }
 }
