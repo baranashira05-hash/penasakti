@@ -4,7 +4,7 @@ import authOptions from "@/lib/auth";
 import { Bookmark as BookmarkIcon, Trash2, Clock, Eye } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { formatDateRelative, formatNumber } from "@/lib/utils";
+import { formatDateRelative, formatNumber, getImageUrl } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Bookmark",
@@ -137,7 +137,7 @@ export default async function BookmarkPage() {
                   >
                     {article.featuredImage ? (
                       <Image
-                        src={article.featuredImage}
+                        src={getImageUrl(article.featuredImage)!}
                         alt={article.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"

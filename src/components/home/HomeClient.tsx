@@ -10,6 +10,7 @@ import TrendingSection from "@/components/home/TrendingSection";
 import PopularArticles from "@/components/home/PopularArticles";
 import NewsletterSection from "@/components/home/NewsletterSection";
 import AdBanner from "@/components/shared/AdBanner";
+import { getImageUrl } from "@/lib/utils";
 
 export default function HomeClient() {
   const [articles, setArticles] = useState<any[]>([]);
@@ -70,7 +71,7 @@ export default function HomeClient() {
             <Link key={a.id} href={`/artikel/${a.slug}`} className="group">
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-slate-700 mb-2">
                 {a.featuredImage ? (
-                  <img src={a.featuredImage} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img src={getImageUrl(a.featuredImage)!} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center"><span className="text-3xl">📰</span></div>
                 )}
@@ -101,7 +102,7 @@ export default function HomeClient() {
                 <Link key={a.id} href={`/artikel/${a.slug}`} className="group flex gap-4 p-3 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 bg-white dark:bg-slate-800 transition-all">
                   {a.featuredImage && (
                     <div className="flex-shrink-0 w-24 h-18 sm:w-32 sm:h-22 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700">
-                      <img src={a.featuredImage} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <img src={getImageUrl(a.featuredImage)!} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -136,7 +137,7 @@ export default function HomeClient() {
             <Link key={a.id} href={`/artikel/${a.slug}`} className="group">
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-slate-700 mb-2">
                 {a.featuredImage ? (
-                  <img src={a.featuredImage} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img src={getImageUrl(a.featuredImage)!} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center"><span className="text-3xl">📰</span></div>
                 )}

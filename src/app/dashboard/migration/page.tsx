@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Database, Download, RefreshCw, CheckCircle, AlertCircle, Loader2, Globe, FileText, Tag, Users, Image as ImageIcon } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 interface MigrationStatus {
   totalArticles: number;
@@ -256,7 +257,7 @@ export default function MigrationPage() {
             {previewArticles.map((a: any) => (
               <div key={a.wpId} className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 dark:border-slate-700">
                 {a.featuredImage && (
-                  <img src={a.featuredImage} alt="" className="w-16 h-12 rounded-lg object-cover flex-shrink-0" />
+                  <img src={getImageUrl(a.featuredImage)!} alt="" className="w-16 h-12 rounded-lg object-cover flex-shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1" dangerouslySetInnerHTML={{ __html: a.title }} />

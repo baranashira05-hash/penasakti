@@ -6,6 +6,7 @@ import { Clock, Eye, User, ArrowLeft } from "lucide-react";
 import { getPostBySlug, getFeaturedImage, getAuthor, cleanContent, getYoastMeta } from "@/lib/wordpress";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
+import { getImageUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -92,7 +93,7 @@ export default async function BeritaPage({ params }: Props) {
           <figure className="mb-8">
             <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800">
               <Image
-                src={featuredImage}
+                src={getImageUrl(featuredImage)!}
                 alt={post.title.rendered}
                 fill
                 className="object-cover"

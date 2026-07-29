@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Eye, ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDateRelative, formatNumber } from "@/lib/utils";
+import { formatDateRelative, formatNumber, getImageUrl } from "@/lib/utils";
 import type { ArticleWithRelations } from "@/types";
 import RelativeTime from "@/components/shared/RelativeTime";
 
@@ -63,7 +63,7 @@ export default function HeroSection({ articles }: HeroSectionProps) {
                     >
                       {article.featuredImage ? (
                         <Image
-                          src={article.featuredImage}
+                          src={getImageUrl(article.featuredImage)!}
                           alt={article.title}
                           fill
                           className="object-cover"
@@ -168,7 +168,7 @@ export default function HeroSection({ articles }: HeroSectionProps) {
                 <div className="relative w-20 h-16 sm:w-24 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
                   {article.featuredImage ? (
                     <Image
-                      src={article.featuredImage}
+                      src={getImageUrl(article.featuredImage)!}
                       alt={article.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
