@@ -114,6 +114,23 @@ export const CATEGORIES = [
   { name: "Infografis", slug: "infografis", color: "#3498db" },
 ];
 
+/**
+ * Converts WordPress /wp-content/uploads/ URLs to proxy route
+ * so gambar dari server lama tetap tampil setelah migrasi ke Vercel
+ */
+export function getImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  // Kalau URL dari WordPress lama (wp-content/uploads)
+  if (url.includes("/wp-content/uploads/")) {
+    // Ambil path setelah domain
+    const match = url.match(/(\/wp-content\/uploads\/.+)/);
+    if (match) {
+      return `/api/proxy-image?path=${encodeURIComponent(match[1])}`;
+    }
+  }
+  return url;
+}
+
 export function nanoid(size = 8): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let id = "";

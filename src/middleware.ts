@@ -117,12 +117,6 @@ function applySecurityHeaders(res: NextResponse, pathname: string): NextResponse
 export function middleware(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
-  // Proxy gambar dari WordPress lama di server Jagoan Hosting
-  if (pathname.startsWith("/wp-content/uploads/")) {
-    const oldServerUrl = `http://161.50.1.21${pathname}`;
-    return NextResponse.rewrite(new URL(oldServerUrl));
-  }
-
   if (BLOCKED_PATHS.some((p) => pathname.includes(p))) {
     return new NextResponse("Forbidden", { status: 403 });
   }

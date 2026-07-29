@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Clock, Eye, MessageSquare, Bookmark } from "lucide-react";
-import { formatDateRelative, formatNumber, cn } from "@/lib/utils";
+import { formatDateRelative, formatNumber, cn, getImageUrl } from "@/lib/utils";
 import type { ArticleWithRelations } from "@/types";
 
 interface ArticleCardProps {
@@ -32,7 +32,7 @@ export default function ArticleCard({
         >
           {article.featuredImage ? (
             <Image
-              src={article.featuredImage}
+              src={getImageUrl(article.featuredImage)!}
               alt={article.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -113,7 +113,7 @@ export default function ArticleCard({
         >
           {article.featuredImage ? (
             <Image
-              src={article.featuredImage}
+              src={getImageUrl(article.featuredImage)!}
               alt={article.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -154,7 +154,7 @@ export default function ArticleCard({
       >
         {article.featuredImage ? (
           <Image
-            src={article.featuredImage}
+            src={getImageUrl(article.featuredImage)!}
             alt={article.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
