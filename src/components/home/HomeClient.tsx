@@ -2,89 +2,47 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Clock, Eye } from "lucide-react";
 import HeroSection from "@/components/home/HeroSection";
 import LiveBanner from "@/components/home/LiveBanner";
 import BreakingSection from "@/components/home/BreakingSection";
 import TrendingSection from "@/components/home/TrendingSection";
-import LatestNews from "@/components/home/LatestNews";
 import PopularArticles from "@/components/home/PopularArticles";
 import NewsletterSection from "@/components/home/NewsletterSection";
-import AdBanner from "@/components/shared/AdBanner";
-
-function FeaturedArticles({ articles }: { articles: any[] }) {
-  if (!articles || articles.length === 0) return null;
-
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {articles.map((article: any) => (
-        <Link key={article.id} href={`/artikel/${article.slug}`} className="group">
-          <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800 mb-2">
-            {article.featuredImage ? (
-              <img src={article.featuredImage} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center">
-                <span className="text-3xl">📰</span>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute bottom-2 left-2 right-2">
-              <span className="text-[9px] font-bold uppercase text-white/80">{article.category?.name || "Berita"}</span>
-            </div>
-          </div>
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
-            {article.title}
-          </h3>
-        </Link>
-      ))}
-    </div>
-  );
-}
 
 export default function HomeClient() {
-  const [heroArticles, setHeroArticles] = useState<any[]>([]);
-  const [latestArticles, setLatestArticles] = useState<any[]>([]);
-  const [trendingArticles, setTrendingArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<any[]>([]);
 
   useEffect(() => {
-    async function loadArticles() {
+    async function load() {
       try {
         const res = await fetch("/api/articles?limit=30");
         if (res.ok) {
           const json = await res.json();
           if (json.data && json.data.length > 0) {
-            const processed = json.data.map((a: any) => ({
+            setArticles(json.data.map((a: any) => ({
               ...a,
               viewCount: a.viewCount || 0,
               commentCount: a.commentCount || 0,
               readTime: a.readTime || 3,
               category: a.category || { id: "1", name: "Berita", slug: "berita", color: "#2563eb" },
-              author: a.author || { id: "1", name: "Redaksi PenaSakti", image: null },
+              author: a.author || { id: "1", name: "Redaksi", image: null },
               tags: a.tags || [],
-            }));
-            setHeroArticles(processed.slice(0, 5));
-            setLatestArticles(processed);
-            setTrendingArticles(processed.slice(0, 10));
+            })));
           }
         }
-      } catch (e) {
-        console.error("Failed to load articles:", e);
-      }
+      } catch {}
     }
-    loadArticles();
+    load();
   }, []);
 
   return (
     <>
-      {/* Hero */}
-      <HeroSection articles={heroArticles} />
+      {/* Hero Slider */}
+      <HeroSection articles={articles.slice(0, 5)} />
 
       {/* Live Banner */}
       <LiveBanner />
-
-      {/* Ad - Header Leaderboard - replaced with featured articles if no ad */}
-      <div className="container mx-auto px-4 my-4">
-        <FeaturedArticles articles={latestArticles.slice(4, 8)} />
-      </div>
 
       {/* Berita Terkini + Trending */}
       <div className="container mx-auto px-4 py-6">
@@ -93,33 +51,103 @@ export default function HomeClient() {
             <BreakingSection />
           </div>
           <div>
-            <TrendingSection articles={trendingArticles} />
+            <TrendingSection articles={articles.slice(0, 10)} />
           </div>
         </div>
       </div>
 
-      {/* Ad - In Article - replaced with more articles */}
-      <div className="container mx-auto px-4 my-4">
-        <FeaturedArticles articles={latestArticles.slice(8, 12)} />
+      {/* Grid Berita Bergambar */}
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1 h-6 bg-blue-600 rounded-full" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Berita Pilihan</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {articles.slice(4, 12).map((a: any) => (
+            <Link key={a.id} href={`/artikel/${a.slug}`} className="group">
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800 mb-2">
+                {a.featuredImage ? (
+                  <img src={a.featuredImage} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center"><span className="text-3xl">📰</span></div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-2 left-2 right-2">
+                  <span className="text-[9px] font-bold uppercase text-white/90 bg-blue-600 px-1.5 py-0.5 rounded">{a.category?.name}</span>
+                </div>
+              </div>
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+                {a.title}
+              </h3>
+            </Link>
+          ))}
+        </div>
       </div>
 
-      {/* Berita Terbaru + Sidebar */}
+      {/* Berita Terbaru List + Sidebar */}
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main - Article List */}
           <div className="lg:col-span-2">
-            <LatestNews articles={latestArticles} />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-1 h-6 bg-red-600 rounded-full" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Berita Terbaru</h2>
+            </div>
+            <div className="space-y-4">
+              {articles.slice(0, 15).map((a: any) => (
+                <Link key={a.id} href={`/artikel/${a.slug}`} className="group flex gap-4 p-3 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 bg-white dark:bg-slate-800 transition-all">
+                  {a.featuredImage && (
+                    <div className="flex-shrink-0 w-24 h-18 sm:w-32 sm:h-22 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700">
+                      <img src={a.featuredImage} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">{a.category?.name}</span>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mt-0.5 leading-snug">{a.title}</h3>
+                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : "-"}</span>
+                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{(a.viewCount || 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
+
+          {/* Sidebar */}
           <aside className="space-y-6">
             <PopularArticles />
-            <AdBanner position="SIDEBAR" />
             <NewsletterSection />
           </aside>
         </div>
       </div>
 
-      {/* More Articles */}
-      <div className="container mx-auto px-4 my-4">
-        <FeaturedArticles articles={latestArticles.slice(12, 16)} />
+      {/* More Articles Grid */}
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1 h-6 bg-emerald-600 rounded-full" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Baca Juga</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {articles.slice(15, 23).map((a: any) => (
+            <Link key={a.id} href={`/artikel/${a.slug}`} className="group">
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800 mb-2">
+                {a.featuredImage ? (
+                  <img src={a.featuredImage} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center"><span className="text-3xl">📰</span></div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-2 left-2 right-2">
+                  <span className="text-[9px] font-bold uppercase text-white/90 bg-emerald-600 px-1.5 py-0.5 rounded">{a.category?.name}</span>
+                </div>
+              </div>
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+                {a.title}
+              </h3>
+            </Link>
+          ))}
+        </div>
       </div>
     </>
   );
