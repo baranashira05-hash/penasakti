@@ -1,16 +1,16 @@
 "use client";
 
-import { Type, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Type, usePathname } from "next/navigation";
-import { Type,
+import { usePathname } from "next/navigation";
+import {
   LayoutDashboard, FileText, Image, Users, MessageSquare,
-  BarChart2, DollarSign, Settings, Tag, Radio,
+  BarChart2, DollarSign, Settings, Tag, Radio, Type,
   PenSquare, Bell, ChevronLeft, ChevronRight, ChevronDown,
   Film, Globe, Shield, ShoppingBag, Megaphone, Mail,
   Search, Zap, ClipboardList, Wallet
 } from "lucide-react";
-import { Type, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
