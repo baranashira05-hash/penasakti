@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -11,11 +13,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Upload gambar dari URL ke Cloudinary
 async function migrateImage(wpUrl: string, slug: string): Promise<string | null> {
+  const publicId = `penasakti/articles/${slug.replace(/[^a-z0-9]/g, "-").substring(0, 60)}`;
+  // Coba langsung dari URL WP
   try {
-    const publicId = `penasakti/articles/${slug.replace(/[^a-z0-9]/g, "-").substring(0, 60)}`;
-
     const result = await cloudinary.uploader.upload(wpUrl, {
       public_id: publicId,
       overwrite: false,
@@ -23,34 +24,33 @@ async function migrateImage(wpUrl: string, slug: string): Promise<string | null>
       transformation: [{ quality: "auto:good", fetch_format: "auto", width: 800, crop: "limit" }],
     });
     return result.secure_url;
-  } catch (e: any) {
-    // Coba ambil dari Wayback Machine
-    try {
-      const archiveUrl = `https://web.archive.org/web/2025/${wpUrl}`;
-      const publicId = `penasakti/articles/${slug.replace(/[^a-z0-9]/g, "-").substring(0, 60)}`;
-      const result = await cloudinary.uploader.upload(archiveUrl, {
-        public_id: publicId,
-        overwrite: false,
-        resource_type: "image",
-        transformation: [{ quality: "auto:good", fetch_format: "auto", width: 800, crop: "limit" }],
-      });
-      return result.secure_url;
-    } catch {
-      return null;
-    }
-  }
+  } catch {}
+  // Fallback: Wayback Machine
+  try {
+    const archiveUrl = `https://web.archive.org/web/2025/${wpUrl}`;
+    const result = await cloudinary.uploader.upload(archiveUrl, {
+      public_id: `${publicId}-arch`,
+      overwrite: false,
+      resource_type: "image",
+      transformation: [{ quality: "auto:good", fetch_format: "auto", width: 800, crop: "limit" }],
+    });
+    return result.secure_url;
+  } catch {}
+  return null;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // Verifikasi secret key — cukup gunakan nilai dari env NEXTAUTH_SECRET
-    const { secret, batch = 10, offset = 0 } = await req.json();
-    const validSecret = process.env.NEXTAUTH_SECRET || process.env.MIGRATION_SECRET;
-    if (!secret || secret !== validSecret) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Auth via session — tidak perlu secret manual
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.role || !["SUPER_ADMIN", "ADMIN"].includes(session.user.role)) {
+      return NextResponse.json({ error: "Unauthorized - Silakan login sebagai Admin" }, { status: 401 });
     }
 
-    // Ambil artikel dengan gambar WordPress
+    const body = await req.json().catch(() => ({}));
+    const batch = Number(body.batch) || 10;
+    const offset = Number(body.offset) || 0;
+
     const articles = await prisma.article.findMany({
       where: { featuredImage: { contains: "wp-content/uploads" } },
       select: { id: true, slug: true, featuredImage: true },
@@ -63,54 +63,50 @@ export async function POST(req: NextRequest) {
       where: { featuredImage: { contains: "wp-content/uploads" } },
     });
 
-    const results = { success: 0, failed: 0, total, remaining: total - offset - batch };
+    let success = 0;
+    let failed = 0;
 
     for (const article of articles) {
-      if (!article.featuredImage || !article.slug) continue;
-
+      if (!article.featuredImage || !article.slug) { failed++; continue; }
       const newUrl = await migrateImage(article.featuredImage, article.slug);
-
       if (newUrl) {
-        await prisma.article.update({
-          where: { id: article.id },
-          data: { featuredImage: newUrl },
-        });
-        results.success++;
+        await prisma.article.update({ where: { id: article.id }, data: { featuredImage: newUrl } });
+        success++;
       } else {
-        results.failed++;
+        failed++;
       }
     }
+
+    const remaining = Math.max(0, total - offset - articles.length);
 
     return NextResponse.json({
       success: true,
       processed: articles.length,
-      ...results,
+      migrated: success,
+      failed,
+      total,
+      remaining,
       nextOffset: offset + batch,
-      done: offset + batch >= total,
+      done: remaining <= 0,
     });
   } catch (error: any) {
+    console.error("[migrate-images]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const total = await prisma.article.count({
+    const totalBroken = await prisma.article.count({
       where: { featuredImage: { contains: "wp-content/uploads" } },
     });
     const migrated = await prisma.article.count({
       where: { featuredImage: { contains: "cloudinary" } },
     });
     const valid = await prisma.article.count({
-      where: {
-        featuredImage: {
-          not: { contains: "wp-content/uploads" },
-          not: null,
-        },
-      },
+      where: { featuredImage: { not: null } },
     });
-
-    return NextResponse.json({ totalBroken: total, migrated, valid });
+    return NextResponse.json({ totalBroken, migrated, valid });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
