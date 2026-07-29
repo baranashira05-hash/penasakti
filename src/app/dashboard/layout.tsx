@@ -6,39 +6,30 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 
 const ALLOWED_ROLES = ["SUPER_ADMIN", "ADMIN", "EDITOR", "JOURNALIST", "SEO_TEAM", "MODERATOR"];
 
-// Demo user for when database is not connected
-const DEMO_USER = {
-  id: "demo-admin",
-  name: "Admin PenaSakti",
-  email: "admin@penasakti.com",
-  image: null,
-  role: "SUPER_ADMIN",
-};
-
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  let user = DEMO_USER;
-
-  try {
-    const session = await getServerSession(authOptions);
-    if (session?.user) {
-      user = {
-        id: session.user.id,
-        name: session.user.name || "Admin",
-        email: session.user.email || "",
-        image: session.user.image || null,
-        role: session.user.role,
-      };
-      if (!ALLOWED_ROLES.includes(session.user.role)) {
-        redirect("/");
-      }
-    }
-  } catch {
-    // Database not available - use demo user
+  const session = await getServerSession(authOptions);
+  
+  // Redirect to login if not authenticated
+  if (!session?.user) {
+    redirect("/login");
   }
+
+  // Check if user has allowed role
+  if (!ALLOWED_ROLES.includes(session.user.role)) {
+    redirect("/");
+  }
+
+  const user = {
+    id: session.user.id,
+    name: session.user.name || "Admin",
+    email: session.user.email || "",
+    image: session.user.image || null,
+    role: session.user.role,
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-slate-950 overflow-hidden">
