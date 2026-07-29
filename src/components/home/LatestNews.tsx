@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Clock, Eye } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
+import ArticleImage from "@/components/shared/ArticleImage";
 
 interface LatestNewsProps {
   articles?: any[];
@@ -33,7 +34,14 @@ export default function LatestNews({ articles }: LatestNewsProps) {
             {/* Thumbnail */}
             {article.featuredImage && (
               <div className="flex-shrink-0 w-28 h-20 sm:w-36 sm:h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700">
-                <img src={getImageUrl(article.featuredImage)!} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <ArticleImage
+                  src={article.featuredImage}
+                  alt={article.title}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="144px"
+                  category={article.category?.slug}
+                />
               </div>
             )}
 

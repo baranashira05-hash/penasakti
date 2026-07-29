@@ -6,7 +6,7 @@ import { Clock, Eye, User, ArrowLeft } from "lucide-react";
 import prisma from "@/lib/prisma";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
-import { getImageUrl } from "@/lib/utils";
+import ArticleImage from "@/components/shared/ArticleImage";
 
 export const dynamic = "force-dynamic";
 
@@ -116,7 +116,15 @@ export default async function ArticlePage({ params }: Props) {
         {article.featuredImage && (
           <figure className="mb-8">
             <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800">
-              <Image src={getImageUrl(article.featuredImage)!} alt={article.title} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 900px" />
+              <ArticleImage
+                src={article.featuredImage}
+                alt={article.title}
+                fill
+                className="object-cover"
+                priority
+                sizes="(max-width: 1024px) 100vw, 900px"
+                category={article.category?.slug}
+              />
             </div>
           </figure>
         )}

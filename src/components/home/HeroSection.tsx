@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Eye, ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDateRelative, formatNumber, getImageUrl } from "@/lib/utils";
+import { formatDateRelative, formatNumber } from "@/lib/utils";
 import type { ArticleWithRelations } from "@/types";
 import RelativeTime from "@/components/shared/RelativeTime";
+import ArticleImage from "@/components/shared/ArticleImage";
 
 interface HeroSectionProps {
   articles: ArticleWithRelations[];
@@ -62,13 +62,14 @@ export default function HeroSection({ articles }: HeroSectionProps) {
                       className="absolute inset-0"
                     >
                       {article.featuredImage ? (
-                        <Image
-                          src={getImageUrl(article.featuredImage)!}
+                        <ArticleImage
+                          src={article.featuredImage}
                           alt={article.title}
                           fill
                           className="object-cover"
                           priority={index === 0}
                           sizes="(max-width: 1024px) 100vw, 66vw"
+                          category={article.category?.slug}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-penasakti-blue to-penasakti-red" />
@@ -167,12 +168,13 @@ export default function HeroSection({ articles }: HeroSectionProps) {
               >
                 <div className="relative w-20 h-16 sm:w-24 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
                   {article.featuredImage ? (
-                    <Image
-                      src={getImageUrl(article.featuredImage)!}
+                    <ArticleImage
+                      src={article.featuredImage}
                       alt={article.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       sizes="96px"
+                      category={article.category?.slug}
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-100 to-red-100 dark:from-blue-900/30 dark:to-red-900/30" />
