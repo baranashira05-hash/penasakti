@@ -270,22 +270,42 @@ export default function IklanPage() {
                           <button onClick={() => setForm({ ...form, code: "" })} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600">✕</button>
                         </div>
                       ) : (
-                        <>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Masukkan URL gambar atau video iklan</p>
-                          <p className="text-[10px] text-gray-400">Format: JPG, PNG, GIF, WebP, MP4</p>
-                        </>
+                        <label className="cursor-pointer block">
+                          <input
+                            type="file"
+                            accept="image/*,video/mp4,video/webm"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 10 * 1024 * 1024) { toast.error("Maks 10MB"); return; }
+                              const fd = new FormData();
+                              fd.append("file", file);
+                              try {
+                                const res = await fetch("/api/upload", { method: "POST", body: fd });
+                                const json = await res.json();
+                                if (json.success) {
+                                  setForm({ ...form, code: json.data.url });
+                                  toast.success("File berhasil diupload");
+                                } else {
+                                  toast.error(json.error || "Upload gagal");
+                                }
+                              } catch { toast.error("Upload gagal"); }
+                            }}
+                          />
+                          <div className="py-4">
+                            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto mb-3">
+                              <Plus className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Klik untuk upload gambar atau video</p>
+                            <p className="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF, WebP, MP4, WebM • Maks 10MB</p>
+                          </div>
+                        </label>
                       )}
                     </div>
-                    <input
-                      type="url"
-                      value={form.code}
-                      onChange={e => setForm({ ...form, code: e.target.value })}
-                      placeholder="https://example.com/banner-iklan.jpg"
-                      className="w-full mt-2 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-500"
-                    />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Link Tujuan (URL klik)</label>
+                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Link Tujuan (URL saat iklan diklik)</label>
                     <input
                       type="url"
                       value={form.linkUrl}
