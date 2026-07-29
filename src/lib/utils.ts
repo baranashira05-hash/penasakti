@@ -115,19 +115,22 @@ export const CATEGORIES = [
 ];
 
 /**
- * Converts WordPress /wp-content/uploads/ URLs to proxy route
- * so gambar dari server lama tetap tampil setelah migrasi ke Vercel
+ * Converts WordPress image URLs ke CDN subdomain yang masih pointing ke server lama
+ * cdn.penasakti.com → 161.50.1.21 (Jagoan Hosting server)
  */
 export function getImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
-  // Kalau URL dari WordPress lama (wp-content/uploads)
+  
+  // URL gambar WordPress: https://penasakti.com/wp-content/uploads/...
+  // Ganti domain ke cdn.penasakti.com yang pointing ke server lama
   if (url.includes("/wp-content/uploads/")) {
-    // Ambil path setelah domain
-    const match = url.match(/(\/wp-content\/uploads\/.+)/);
-    if (match) {
-      return `/api/proxy-image?path=${encodeURIComponent(match[1])}`;
-    }
+    return url
+      .replace("https://penasakti.com", "http://cdn.penasakti.com")
+      .replace("https://www.penasakti.com", "http://cdn.penasakti.com")
+      .replace("http://penasakti.com", "http://cdn.penasakti.com")
+      .replace("http://www.penasakti.com", "http://cdn.penasakti.com");
   }
+  
   return url;
 }
 
