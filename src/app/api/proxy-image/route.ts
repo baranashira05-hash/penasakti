@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// IMPORTANT: Gunakan subdomain yang TIDAK di-proxy Cloudflare dan pointing langsung ke server lama
-// Atau gunakan IP langsung dengan header Host yang benar
-const OLD_SERVER_IP = "161.50.1.21";
+// Subdomain khusus yang pointing ke server lama Jagoan Hosting (DNS only, tidak lewat Vercel)
+const CDN_BASE = "http://cdn.penasakti.com";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,34 +12,25 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Invalid path", { status: 400 });
     }
 
-    // Fetch langsung ke IP server lama
-    const imageUrl = `http://${OLD_SERVER_IP}${path}`;
-    
+    const imageUrl = `${CDN_BASE}${path}`;
+
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
-    
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
     const imageRes = await fetch(imageUrl, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
-        // Penting: Set Host header ke domain asli
-        "Host": "penasakti.com",
       },
       signal: controller.signal,
+      redirect: "follow",
     });
-    
+
     clearTimeout(timeout);
 
     if (!imageRes.ok) {
-      console.error(`Failed to fetch ${imageUrl}: ${imageRes.status} ${imageRes.statusText}`);
-      
-      // Fallback: return placeholder image
-      return new NextResponse(null, { 
-        status: 302,
-        headers: {
-          "Location": "https://placehold.co/600x400/cccccc/ffffff?text=Image+Not+Found"
-        }
-      });
+      console.error(`Proxy failed: ${imageUrl} → ${imageRes.status}`);
+      return new NextResponse("Image not found", { status: 404 });
     }
 
     const imageBuffer = await imageRes.arrayBuffer();
@@ -50,19 +40,11 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "public, max-age=86400",
       },
     });
   } catch (error: any) {
     console.error("Image proxy error:", error.message);
-    
-    // Return placeholder on error
-    return new NextResponse(null, { 
-      status: 302,
-      headers: {
-        "Location": "https://placehold.co/600x400/e0e0e0/666666?text=Loading+Error"
-      }
-    });
+    return new NextResponse("Failed to fetch image", { status: 500 });
   }
 }

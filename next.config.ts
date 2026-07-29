@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "penasakti.com" },
       { protocol: "https", hostname: "*.penasakti.com" },
+      { protocol: "http", hostname: "cdn.penasakti.com" },
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "uploadthing.com" },
