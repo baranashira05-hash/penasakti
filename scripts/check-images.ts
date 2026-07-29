@@ -10,28 +10,26 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("🔍 Cek 5 artikel pertama dengan gambar:\n");
-  
-  const articles = await prisma.article.findMany({ 
-    take: 5, 
-    select: { 
-      featuredImage: true, 
-      title: true 
-    }, 
-    where: { 
-      featuredImage: { not: null } 
-    } 
+  const articles = await prisma.article.findMany({
+    take: 10,
+    select: { featuredImage: true, title: true },
+    where: { featuredImage: { not: null } },
+    orderBy: { createdAt: "desc" },
   });
-  
-  articles.forEach(a => {
-    console.log(`Title: ${a.title?.substring(0, 50)}`);
-    console.log(`Image: ${a.featuredImage}\n`);
+
+  console.log("=== Sample Featured Images ===\n");
+  articles.forEach((a, i) => {
+    console.log(`${i + 1}. ${a.title?.substring(0, 50)}`);
+    console.log(`   URL: ${a.featuredImage}\n`);
   });
+
+  const total = await prisma.article.count({ where: { featuredImage: { not: null } } });
+  console.log(`Total artikel dengan gambar: ${total}`);
 }
 
 main()
-  .catch(e => console.error(e))
-  .finally(async () => { 
-    await prisma.$disconnect(); 
-    await pool.end(); 
+  .catch(e => console.error("Error:", e.message))
+  .finally(async () => {
+    await prisma.$disconnect();
+    await pool.end();
   });

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -71,5 +73,86 @@ export async function GET(request: NextRequest) {
       data: [],
       meta: { total: 0, page: 1, limit: 10, totalPages: 0, hasNextPage: false, hasPrevPage: false },
     });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { title, content, excerpt, categoryId, tags, featuredImage, metaTitle, metaDesc, metaKeywords, status } = body;
+
+    if (!title?.trim()) {
+      return NextResponse.json({ success: false, error: "Judul harus diisi" }, { status: 400 });
+    }
+    if (!categoryId) {
+      return NextResponse.json({ success: false, error: "Kategori harus dipilih" }, { status: 400 });
+    }
+
+    // Generate slug dari judul
+    const baseSlug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+
+    // Pastikan slug unik
+    let slug = baseSlug;
+    let counter = 1;
+    while (await prisma.article.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter++}`;
+    }
+
+    // Hitung read time
+    const wordCount = content?.replace(/<[^>]+>/g, "").split(/\s+/).length || 0;
+    const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+    const article = await prisma.article.create({
+      data: {
+        title: title.trim(),
+        slug,
+        content: content || "",
+        excerpt: excerpt || "",
+        featuredImage: featuredImage || null,
+        metaTitle: metaTitle || title,
+        metaDesc: metaDesc || excerpt || "",
+        metaKeywords: metaKeywords || "",
+        status: status || "DRAFT",
+        readTime,
+        publishedAt: status === "PUBLISHED" ? new Date() : null,
+        authorId: session.user.id,
+        categoryId,
+      },
+    });
+
+    // Tambahkan tags jika ada
+    if (tags && tags.length > 0) {
+      for (const tagName of tags) {
+        const tagSlug = tagName.toLowerCase().replace(/\s+/g, "-");
+        const tag = await prisma.tag.upsert({
+          where: { slug: tagSlug },
+          update: {},
+          create: { name: tagName, slug: tagSlug },
+        });
+        await prisma.articleTag.upsert({
+          where: { articleId_tagId: { articleId: article.id, tagId: tag.id } },
+          update: {},
+          create: { articleId: article.id, tagId: tag.id },
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true, data: { ...article, viewCount: Number(article.viewCount) } }, { status: 201 });
+  } catch (error) {
+    console.error("[/api/articles POST]", error);
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : "Gagal menyimpan artikel",
+    }, { status: 500 });
   }
 }
