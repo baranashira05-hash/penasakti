@@ -27,7 +27,7 @@ export default function BreakingSection() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-1 h-6 bg-red-600 rounded-full" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Berita Terkini</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Berita Terkini</h2>
         </div>
         <Link href="/pencarian" className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">
           Lihat Semua →
@@ -39,16 +39,16 @@ export default function BreakingSection() {
           <Link
             key={article.id}
             href={`/artikel/${article.slug}`}
-            className="group flex gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all"
+            className="group flex gap-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all"
           >
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
               {index + 1}
             </div>
             <div className="flex-1 min-w-0">
               <span className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">
                 {article.category?.name || "Berita"}
               </span>
-              <h3 className="text-sm font-semibold line-clamp-2 mt-0.5 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+              <h3 className="text-sm font-semibold line-clamp-2 mt-0.5 text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
                 {article.title}
               </h3>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">

@@ -63,12 +63,12 @@ export default function HomeClient() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-1 h-6 bg-blue-600 rounded-full" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Berita Pilihan</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Berita Pilihan</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {articles.slice(4, 12).map((a: any) => (
             <Link key={a.id} href={`/artikel/${a.slug}`} className="group">
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800 mb-2">
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-slate-700 mb-2">
                 {a.featuredImage ? (
                   <img src={a.featuredImage} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
@@ -76,10 +76,10 @@ export default function HomeClient() {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2">
-                  <span className="text-[9px] font-bold uppercase text-white/90 bg-blue-600 px-1.5 py-0.5 rounded">{a.category?.name}</span>
+                  <span className="text-[9px] font-bold uppercase text-white bg-blue-600 px-1.5 py-0.5 rounded">{a.category?.name}</span>
                 </div>
               </div>
-              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
                 {a.title}
               </h3>
             </Link>
@@ -94,7 +94,7 @@ export default function HomeClient() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-1 h-6 bg-red-600 rounded-full" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Berita Terbaru</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Berita Terbaru</h2>
             </div>
             <div className="space-y-4">
               {articles.slice(0, 15).map((a: any) => (
@@ -106,7 +106,7 @@ export default function HomeClient() {
                   )}
                   <div className="flex-1 min-w-0">
                     <span className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">{a.category?.name}</span>
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mt-0.5 leading-snug">{a.title}</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mt-0.5 leading-snug">{a.title}</h3>
                     <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : "-"}</span>
                       <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{(a.viewCount || 0).toLocaleString()}</span>
@@ -129,12 +129,12 @@ export default function HomeClient() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-1 h-6 bg-emerald-600 rounded-full" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Baca Juga</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Baca Juga</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {articles.slice(15, 23).map((a: any) => (
             <Link key={a.id} href={`/artikel/${a.slug}`} className="group">
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800 mb-2">
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-slate-700 mb-2">
                 {a.featuredImage ? (
                   <img src={a.featuredImage} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
@@ -145,7 +145,7 @@ export default function HomeClient() {
                   <span className="text-[9px] font-bold uppercase text-white/90 bg-emerald-600 px-1.5 py-0.5 rounded">{a.category?.name}</span>
                 </div>
               </div>
-              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
                 {a.title}
               </h3>
             </Link>
