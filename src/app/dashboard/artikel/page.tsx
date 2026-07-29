@@ -74,9 +74,27 @@ export default function ArticlesPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Manajemen Artikel</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">{total.toLocaleString()} artikel total</p>
         </div>
-        <Link href="/dashboard/artikel/baru" className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm">
-          <PlusCircle className="w-4 h-4" /> Buat Artikel
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/dashboard/artikel/baru" className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm">
+            <PlusCircle className="w-4 h-4" /> Buat Artikel
+          </Link>
+        </div>
+      </div>
+
+      {/* Quick Filters */}
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => { setSearch(""); setPage(1); fetchArticles(1, ""); }} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-600 text-white">
+          Semua ({total})
+        </button>
+        <button onClick={() => { setSearch(""); setPage(1); fetchArticles(1, ""); }} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+          🔥 Berita Terkini
+        </button>
+        <button onClick={() => { setSearch(""); setPage(1); fetchArticles(1, ""); }} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+          📈 Trending
+        </button>
+        <button onClick={() => { setSearch(""); setPage(1); fetchArticles(1, ""); }} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
+          ⭐ Populer
+        </button>
       </div>
 
       {/* Search */}
