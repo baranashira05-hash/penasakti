@@ -516,33 +516,52 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
           <label className="text-sm font-bold block mb-2">Foto Utama</label>
           {featuredImage ? (
             <div className="relative">
-              <img
-                src={featuredImage}
-                alt="Featured"
-                className="w-full aspect-video object-cover rounded-xl"
-              />
-              <button
-                onClick={() => setFeaturedImage("")}
-                className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white"
-              >
-                <X className="w-3 h-3" />
+              <img src={featuredImage} alt="Featured" className="w-full aspect-video object-cover rounded-xl" />
+              <button onClick={() => setFeaturedImage("")} className="absolute top-2 right-2 w-7 h-7 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => {
-                const url = prompt("Masukkan URL gambar:");
-                if (url) setFeaturedImage(url);
-              }}
-              className="w-full aspect-video bg-muted rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:bg-muted/80 transition-colors"
-            >
+            <label className="w-full aspect-video bg-muted rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:bg-muted/80 transition-colors cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const fd = new FormData();
+                  fd.append("file", file);
+                  toast.loading("Mengupload gambar...", { id: "upload" });
+                  try {
+                    const res = await fetch("/api/upload", { method: "POST", body: fd });
+                    const data = await res.json();
+                    if (data.success) {
+                      setFeaturedImage(data.data.url);
+                      toast.success("Gambar berhasil diupload!", { id: "upload" });
+                    } else {
+                      toast.error(data.error || "Upload gagal", { id: "upload" });
+                    }
+                  } catch {
+                    toast.error("Upload gagal", { id: "upload" });
+                  }
+                }}
+              />
               <ImageIcon className="w-8 h-8 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Klik untuk upload</span>
-            </button>
+              <span className="text-sm font-medium text-muted-foreground">Klik untuk pilih gambar</span>
+              <span className="text-xs text-muted-foreground">JPG, PNG, WebP — Maks 10MB</span>
+            </label>
           )}
-        </div>
-
-        {/* Excerpt AI */}
+          {/* Atau URL manual */}
+          <div className="mt-2 flex gap-2">
+            <input
+              type="url"
+              placeholder="Atau paste URL gambar..."
+              className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-penasakti-blue/30"
+              onBlur={(e) => { if (e.target.value) setFeaturedImage(e.target.value); }}
+            />
+          </div>
+        </div>        {/* Excerpt AI */}
         <div className="bg-card rounded-2xl border border-border p-4">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-bold">Ringkasan</label>
