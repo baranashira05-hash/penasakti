@@ -29,10 +29,8 @@ const POSITIONS = [
 const AD_TEMPLATES = {
   manual: {
     label: "Manual / Sponsor",
-    desc: "Pasang banner gambar atau HTML kustom",
-    template: `<a href="https://example.com" target="_blank" rel="sponsored nofollow">
-  <img src="https://via.placeholder.com/728x90?text=IKLAN+SPONSOR" alt="Sponsor" style="width:100%;max-width:728px;height:auto;border-radius:8px;" />
-</a>`,
+    desc: "Upload gambar atau video banner iklan",
+    template: "",
   },
   adsterra: {
     label: "Adsterra",
@@ -68,7 +66,7 @@ export default function IklanPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [adType, setAdType] = useState<"manual" | "adsterra" | "google">("manual");
-  const [form, setForm] = useState({ name: "", code: "", position: "HEADER", status: "ACTIVE", startDate: "", endDate: "" });
+  const [form, setForm] = useState({ name: "", code: "", linkUrl: "", position: "HEADER", status: "ACTIVE", startDate: "", endDate: "" });
 
   const fetchAds = async () => {
     try {
@@ -82,17 +80,29 @@ export default function IklanPage() {
 
   const handleCreate = async () => {
     if (!form.name) { toast.error("Nama iklan wajib diisi"); return; }
+    
+    // For manual ads, generate HTML from image/video URL + link
+    let finalCode = form.code;
+    if (adType === "manual" && form.code && !form.code.startsWith("<")) {
+      const isVideo = form.code.match(/\.(mp4|webm|ogg)$/i);
+      if (isVideo) {
+        finalCode = `<a href="${form.linkUrl || '#'}" target="_blank" rel="sponsored nofollow"><video src="${form.code}" autoplay muted loop playsinline style="width:100%;max-width:728px;height:auto;border-radius:8px;"></video></a>`;
+      } else {
+        finalCode = `<a href="${form.linkUrl || '#'}" target="_blank" rel="sponsored nofollow"><img src="${form.code}" alt="${form.name}" style="width:100%;max-width:728px;height:auto;border-radius:8px;" /></a>`;
+      }
+    }
+
     try {
       const res = await fetch("/api/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, code: finalCode }),
       });
       const json = await res.json();
       if (json.success) {
         toast.success("Iklan berhasil dibuat");
         setShowCreate(false);
-        setForm({ name: "", code: "", position: "HEADER", status: "ACTIVE", startDate: "", endDate: "" });
+        setForm({ name: "", code: "", linkUrl: "", position: "HEADER", status: "ACTIVE", startDate: "", endDate: "" });
         fetchAds();
       } else {
         toast.error(json.error);
@@ -244,16 +254,59 @@ export default function IklanPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Kode Iklan (HTML/Script)</label>
-                <textarea
-                  value={form.code}
-                  onChange={e => setForm({ ...form, code: e.target.value })}
-                  rows={8}
-                  placeholder="Paste kode HTML/JavaScript iklan di sini..."
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-xs font-mono focus:outline-none focus:border-purple-500 resize-y"
-                />
-              </div>
+              {/* Media Upload or Code */}
+              {adType === "manual" ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Upload Gambar / Video</label>
+                    <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl p-6 text-center hover:border-purple-400 dark:hover:border-purple-500 transition-colors">
+                      {form.code ? (
+                        <div className="relative">
+                          {form.code.match(/\.(mp4|webm|ogg)$/i) ? (
+                            <video src={form.code} className="max-h-40 mx-auto rounded-lg" controls />
+                          ) : (
+                            <img src={form.code} alt="Preview" className="max-h-40 mx-auto rounded-lg" />
+                          )}
+                          <button onClick={() => setForm({ ...form, code: "" })} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600">✕</button>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Masukkan URL gambar atau video iklan</p>
+                          <p className="text-[10px] text-gray-400">Format: JPG, PNG, GIF, WebP, MP4</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="url"
+                      value={form.code}
+                      onChange={e => setForm({ ...form, code: e.target.value })}
+                      placeholder="https://example.com/banner-iklan.jpg"
+                      className="w-full mt-2 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Link Tujuan (URL klik)</label>
+                    <input
+                      type="url"
+                      value={form.linkUrl}
+                      onChange={e => setForm({ ...form, linkUrl: e.target.value })}
+                      placeholder="https://example.com/landing-page"
+                      className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Kode Iklan (HTML/Script)</label>
+                  <textarea
+                    value={form.code}
+                    onChange={e => setForm({ ...form, code: e.target.value })}
+                    rows={6}
+                    placeholder="Paste kode iklan Adsterra atau Google AdSense di sini..."
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-xs font-mono focus:outline-none focus:border-purple-500 resize-y"
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
