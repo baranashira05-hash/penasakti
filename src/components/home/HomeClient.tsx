@@ -9,6 +9,7 @@ import BreakingSection from "@/components/home/BreakingSection";
 import TrendingSection from "@/components/home/TrendingSection";
 import PopularArticles from "@/components/home/PopularArticles";
 import NewsletterSection from "@/components/home/NewsletterSection";
+import AdBanner from "@/components/shared/AdBanner";
 
 export default function HomeClient() {
   const [articles, setArticles] = useState<any[]>([]);
@@ -45,6 +46,7 @@ export default function HomeClient() {
       <LiveBanner />
 
       {/* Berita Terkini + Trending */}
+      <AdBanner position="HEADER" className="my-2" />
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -57,6 +59,7 @@ export default function HomeClient() {
       </div>
 
       {/* Grid Berita Bergambar */}
+      <AdBanner position="IN_ARTICLE" className="my-2" />
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-1 h-6 bg-blue-600 rounded-full" />

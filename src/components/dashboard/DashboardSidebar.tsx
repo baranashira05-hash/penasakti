@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { Type, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
+import { Type, usePathname } from "next/navigation";
+import { Type,
   LayoutDashboard, FileText, Image, Users, MessageSquare,
   BarChart2, DollarSign, Settings, Tag, Radio,
   PenSquare, Bell, ChevronLeft, ChevronRight, ChevronDown,
   Film, Globe, Shield, ShoppingBag, Megaphone, Mail,
   Search, Zap, ClipboardList, Wallet
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Type, cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
@@ -44,6 +44,7 @@ const navItems: NavItem[] = [
   { label: "Task", href: "/dashboard/task", icon: ClipboardList },
   { label: "Keamanan", href: "/dashboard/keamanan", icon: Shield, roles: ["SUPER_ADMIN"] },
   { label: "Migrasi WP", href: "/dashboard/migration", icon: Globe, roles: ["SUPER_ADMIN"] },
+  { label: "Running Text", href: "/dashboard/running-text", icon: Type },
   { label: "Pengaturan", href: "/dashboard/pengaturan", icon: Settings },
 ];
 

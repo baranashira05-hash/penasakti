@@ -22,7 +22,7 @@ export default function AdBanner({ position, className }: AdBannerProps) {
   useEffect(() => {
     async function loadAd() {
       try {
-        const res = await fetch(`/api/ads?position=${position}`);
+        const res = await fetch(`/api/ads?position=${position}&display=true`);
         if (res.ok) {
           const json = await res.json();
           const ad = (json.data || [])[0];
