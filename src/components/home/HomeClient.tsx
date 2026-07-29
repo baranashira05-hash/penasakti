@@ -6,8 +6,6 @@ import LiveBanner from "@/components/home/LiveBanner";
 import BreakingSection from "@/components/home/BreakingSection";
 import TrendingSection from "@/components/home/TrendingSection";
 import LatestNews from "@/components/home/LatestNews";
-import CategorySection from "@/components/home/CategorySection";
-import FeaturedVideo from "@/components/home/FeaturedVideo";
 import PopularArticles from "@/components/home/PopularArticles";
 import NewsletterSection from "@/components/home/NewsletterSection";
 import AdBanner from "@/components/shared/AdBanner";
@@ -16,16 +14,14 @@ export default function HomeClient() {
   const [heroArticles, setHeroArticles] = useState<any[]>([]);
   const [latestArticles, setLatestArticles] = useState<any[]>([]);
   const [trendingArticles, setTrendingArticles] = useState<any[]>([]);
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     async function loadArticles() {
       try {
-        const res = await fetch("/api/articles?limit=12");
+        const res = await fetch("/api/articles?limit=20");
         if (res.ok) {
           const json = await res.json();
           if (json.data && json.data.length > 0) {
-            // Ensure all articles have required fields for display
             const processed = json.data.map((a: any) => ({
               ...a,
               viewCount: a.viewCount || 0,
@@ -42,8 +38,6 @@ export default function HomeClient() {
         }
       } catch (e) {
         console.error("Failed to load articles:", e);
-      } finally {
-        setLoaded(true);
       }
     }
     loadArticles();
@@ -51,16 +45,16 @@ export default function HomeClient() {
 
   return (
     <>
+      {/* Hero */}
       <HeroSection articles={heroArticles} />
 
-      <div className="bg-gray-900 dark:bg-black">
-        <LiveBanner />
-      </div>
+      {/* Live Banner */}
+      <LiveBanner />
 
-      <div className="container mx-auto px-4 py-4">
-        <AdBanner position="HEADER" />
-      </div>
+      {/* Ad - Header Leaderboard */}
+      <AdBanner position="HEADER" className="my-4" />
 
+      {/* Berita Terkini + Trending */}
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -72,6 +66,10 @@ export default function HomeClient() {
         </div>
       </div>
 
+      {/* Ad - In Article */}
+      <AdBanner position="IN_ARTICLE" className="my-4" />
+
+      {/* Berita Terbaru + Sidebar */}
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -85,12 +83,8 @@ export default function HomeClient() {
         </div>
       </div>
 
-      <CategorySection />
-      <FeaturedVideo />
-
-      <div className="container mx-auto px-4 py-4">
-        <AdBanner position="FOOTER" />
-      </div>
+      {/* Ad - Footer */}
+      <AdBanner position="FOOTER" className="my-4" />
     </>
   );
 }
