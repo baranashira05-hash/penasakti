@@ -43,9 +43,10 @@ async function migrateImage(wpUrl: string, slug: string): Promise<string | null>
 
 export async function POST(req: NextRequest) {
   try {
-    // Verifikasi secret key
-    const { secret, batch = 20, offset = 0 } = await req.json();
-    if (secret !== process.env.NEXTAUTH_SECRET) {
+    // Verifikasi secret key — cukup gunakan nilai dari env NEXTAUTH_SECRET
+    const { secret, batch = 10, offset = 0 } = await req.json();
+    const validSecret = process.env.NEXTAUTH_SECRET || process.env.MIGRATION_SECRET;
+    if (!secret || secret !== validSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
