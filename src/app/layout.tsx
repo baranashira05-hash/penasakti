@@ -85,10 +85,9 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/favicon.ico" },
-      { url: "/logo-penasakti.png", sizes: "any", type: "image/png" },
+      { url: "/favicon.png", type: "image/png" },
     ],
-    apple: [{ url: "/logo-penasakti.png" }],
+    apple: [{ url: "/favicon.png" }],
   },
 };
 
