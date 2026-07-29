@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect } from "react";
-import { Megaphone, Plus, Trash2, Eye, Copy, X, CheckCircle } from "lucide-react";
+import { Megaphone, Plus, Trash2, Eye, Copy, X, CheckCircle, Edit } from "lucide-react";
 import { toast } from "sonner";
 
 interface Ad {
@@ -65,6 +65,7 @@ export default function IklanPage() {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [editAd, setEditAd] = useState<Ad | null>(null);
   const [adType, setAdType] = useState<"manual" | "adsterra" | "google">("manual");
   const [form, setForm] = useState({ name: "", code: "", linkUrl: "", position: "HEADER", status: "ACTIVE", startDate: "", endDate: "" });
 
@@ -93,21 +94,24 @@ export default function IklanPage() {
     }
 
     try {
+      const method = editAd ? "PUT" : "POST";
+      const payload = editAd ? { ...form, code: finalCode, id: editAd.id } : { ...form, code: finalCode };
       const res = await fetch("/api/ads", {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, code: finalCode }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (json.success) {
-        toast.success("Iklan berhasil dibuat");
+        toast.success(editAd ? "Iklan berhasil diupdate" : "Iklan berhasil dibuat");
         setShowCreate(false);
+        setEditAd(null);
         setForm({ name: "", code: "", linkUrl: "", position: "HEADER", status: "ACTIVE", startDate: "", endDate: "" });
         fetchAds();
       } else {
         toast.error(json.error);
       }
-    } catch { toast.error("Gagal membuat iklan"); }
+    } catch { toast.error("Gagal menyimpan iklan"); }
   };
 
   const handleDelete = async (id: string) => {
@@ -199,9 +203,14 @@ export default function IklanPage() {
                     <td className="px-4 py-3 text-right text-xs text-gray-600 hidden sm:table-cell">{ad.impressions.toLocaleString()}</td>
                     <td className="px-4 py-3 text-right text-xs text-gray-600 hidden sm:table-cell">{ad.clicks.toLocaleString()}</td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleDelete(ad.id)} className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-600">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => { setEditAd(ad); setShowCreate(true); setAdType("manual"); setForm({ name: ad.name, code: ad.code || "", linkUrl: "", position: ad.position, status: ad.status, startDate: "", endDate: "" }); }} className="p-1.5 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-400 hover:text-blue-600" title="Edit">
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(ad.id)} className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-600" title="Hapus">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -216,8 +225,8 @@ export default function IklanPage() {
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/50" onClick={() => setShowCreate(false)}>
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-slate-700">
-              <h2 className="font-bold text-gray-900 dark:text-white">Buat Iklan Baru</h2>
-              <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-500">
+              <h2 className="font-bold text-gray-900 dark:text-white">{editAd ? "Edit Iklan" : "Buat Iklan Baru"}</h2>
+              <button onClick={() => { setShowCreate(false); setEditAd(null); }} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-500">
                 <X className="w-5 h-5" />
               </button>
             </div>

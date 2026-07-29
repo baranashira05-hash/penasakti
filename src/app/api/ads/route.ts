@@ -81,3 +81,25 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Gagal menghapus" }, { status: 500 });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id, name, code, position, status } = body;
+
+    if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+
+    if (code && code.startsWith("data:") && code.length > 100000) {
+      return NextResponse.json({ success: false, error: "Gambar terlalu besar. Gunakan URL dari hosting." }, { status: 400 });
+    }
+
+    const updated = await prisma.advertisement.update({
+      where: { id },
+      data: { name, code: code || "", position, status: status || "ACTIVE" },
+    });
+
+    return NextResponse.json({ success: true, data: { id: updated.id } });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Gagal update" }, { status: 500 });
+  }
+}
