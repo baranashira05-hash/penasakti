@@ -24,15 +24,15 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   {
-    label: "Artikel", href: "/dashboard/artikel", icon: FileText, badge: "342",
+    label: "Artikel", href: "/dashboard/artikel", icon: FileText,
     children: [
       { label: "Semua Artikel", href: "/dashboard/artikel" },
       { label: "Buat Baru", href: "/dashboard/artikel/baru" },
     ],
   },
-  { label: "Live Video", href: "/dashboard/live", icon: Radio, badge: "2" },
+  { label: "Live Video", href: "/dashboard/live", icon: Radio },
   { label: "Media Library", href: "/dashboard/media", icon: Image },
-  { label: "Komentar", href: "/dashboard/komentar", icon: MessageSquare, badge: "12" },
+  { label: "Komentar", href: "/dashboard/komentar", icon: MessageSquare },
   { label: "Pengguna", href: "/dashboard/pengguna", icon: Users, roles: ["SUPER_ADMIN", "ADMIN"] },
   { label: "Iklan", href: "/dashboard/iklan", icon: Megaphone },
   { label: "Store", href: "/dashboard/store", icon: ShoppingBag },
