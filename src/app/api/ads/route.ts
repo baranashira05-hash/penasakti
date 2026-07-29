@@ -3,11 +3,31 @@ import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const position = searchParams.get("position");
+
+    const where: Record<string, unknown> = { status: "ACTIVE" };
+    if (position) where.position = position;
+
     const ads = await prisma.advertisement.findMany({
+      where,
       orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        position: true,
+        status: true,
+        impressions: true,
+        clicks: true,
+        startDate: true,
+        endDate: true,
+        createdAt: true,
+      },
     });
+
     return NextResponse.json({ success: true, data: ads });
   } catch (error) {
     return NextResponse.json({ success: true, data: [] });

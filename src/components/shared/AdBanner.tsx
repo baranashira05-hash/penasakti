@@ -22,10 +22,10 @@ export default function AdBanner({ position, className }: AdBannerProps) {
   useEffect(() => {
     async function loadAd() {
       try {
-        const res = await fetch("/api/ads");
+        const res = await fetch(`/api/ads?position=${position}`);
         if (res.ok) {
           const json = await res.json();
-          const ad = (json.data || []).find((a: any) => a.position === position && a.status === "ACTIVE");
+          const ad = (json.data || [])[0];
           if (ad && ad.code) {
             setAdCode(ad.code);
           }
