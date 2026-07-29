@@ -9,8 +9,10 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const article = await prisma.article.findUnique({
-      where: { slug },
+    
+    // Support both slug and ID lookup
+    const article = await prisma.article.findFirst({
+      where: { OR: [{ slug }, { id: slug }] },
       include: {
         author: { select: { id: true, name: true, image: true } },
         category: { select: { id: true, name: true, slug: true, color: true } },
@@ -21,7 +23,7 @@ export async function GET(
     if (!article) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 
     // Increment view
-    await prisma.article.update({ where: { slug }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+    await prisma.article.update({ where: { id: article.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
 
     return NextResponse.json({
       success: true,
