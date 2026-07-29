@@ -258,51 +258,25 @@ export default function IklanPage() {
               {adType === "manual" ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Upload Gambar / Video</label>
-                    <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl p-6 text-center hover:border-purple-400 dark:hover:border-purple-500 transition-colors">
-                      {form.code ? (
-                        <div className="relative">
-                          {form.code.match(/\.(mp4|webm|ogg)$/i) ? (
-                            <video src={form.code} className="max-h-40 mx-auto rounded-lg" controls />
-                          ) : (
-                            <img src={form.code} alt="Preview" className="max-h-40 mx-auto rounded-lg" />
-                          )}
-                          <button onClick={() => setForm({ ...form, code: "" })} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600">✕</button>
-                        </div>
-                      ) : (
-                        <label className="cursor-pointer block">
-                          <input
-                            type="file"
-                            accept="image/*,video/mp4,video/webm"
-                            className="hidden"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              if (file.size > 10 * 1024 * 1024) { toast.error("Maks 10MB"); return; }
-                              const fd = new FormData();
-                              fd.append("file", file);
-                              try {
-                                const res = await fetch("/api/upload", { method: "POST", body: fd });
-                                const json = await res.json();
-                                if (json.success) {
-                                  setForm({ ...form, code: json.data.url });
-                                  toast.success("File berhasil diupload");
-                                } else {
-                                  toast.error(json.error || "Upload gagal");
-                                }
-                              } catch { toast.error("Upload gagal"); }
-                            }}
-                          />
-                          <div className="py-4">
-                            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto mb-3">
-                              <Plus className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Klik untuk upload gambar atau video</p>
-                            <p className="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF, WebP, MP4, WebM • Maks 10MB</p>
-                          </div>
-                        </label>
-                      )}
-                    </div>
+                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">URL Gambar / Video Iklan</label>
+                    <p className="text-[10px] text-gray-400 mb-2">Upload gambar ke <a href="https://postimages.org" target="_blank" rel="noopener" className="text-blue-500 underline">PostImages.org</a> atau <a href="https://imgur.com/upload" target="_blank" rel="noopener" className="text-blue-500 underline">Imgur.com</a> lalu paste link di bawah</p>
+                    <input
+                      type="url"
+                      value={form.code}
+                      onChange={e => setForm({ ...form, code: e.target.value })}
+                      placeholder="https://i.postimg.cc/xxxxx/banner.jpg"
+                      className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-500"
+                    />
+                    {/* Preview */}
+                    {form.code && (
+                      <div className="mt-3 relative rounded-lg overflow-hidden border border-gray-200 dark:border-slate-600">
+                        {form.code.match(/\.(mp4|webm|ogg)/i) ? (
+                          <video src={form.code} className="w-full max-h-48 object-contain bg-black" controls />
+                        ) : (
+                          <img src={form.code} alt="Preview" className="w-full max-h-48 object-contain bg-gray-50 dark:bg-slate-900" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Link Tujuan (URL saat iklan diklik)</label>
