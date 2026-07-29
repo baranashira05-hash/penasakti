@@ -25,9 +25,19 @@ export default function HomeClient() {
         if (res.ok) {
           const json = await res.json();
           if (json.data && json.data.length > 0) {
-            setHeroArticles(json.data.slice(0, 5));
-            setLatestArticles(json.data);
-            setTrendingArticles(json.data.slice(0, 10));
+            // Ensure all articles have required fields for display
+            const processed = json.data.map((a: any) => ({
+              ...a,
+              viewCount: a.viewCount || 0,
+              commentCount: a.commentCount || 0,
+              readTime: a.readTime || 3,
+              category: a.category || { id: "1", name: "Berita", slug: "berita", color: "#2563eb" },
+              author: a.author || { id: "1", name: "Redaksi PenaSakti", image: null },
+              tags: a.tags || [],
+            }));
+            setHeroArticles(processed.slice(0, 5));
+            setLatestArticles(processed);
+            setTrendingArticles(processed.slice(0, 10));
           }
         }
       } catch (e) {

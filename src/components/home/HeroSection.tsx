@@ -9,58 +9,22 @@ import { formatDateRelative, formatNumber } from "@/lib/utils";
 import type { ArticleWithRelations } from "@/types";
 import RelativeTime from "@/components/shared/RelativeTime";
 
-// Demo articles for when DB is empty
-function getDemoArticles(): Partial<ArticleWithRelations>[] {
-  return [
-    {
-      id: "1",
-      title: "Presiden Umumkan Paket Stimulus Ekonomi Rp 500 Triliun untuk Pemulihan Nasional",
-      slug: "presiden-umumkan-paket-stimulus-ekonomi",
-      excerpt: "Pemerintah menggelontorkan stimulus besar-besaran untuk mendorong pertumbuhan ekonomi nasional yang ditargetkan mencapai 6% pada tahun ini.",
-      featuredImage: "https://picsum.photos/seed/hero1/1200/600",
-      category: { id: "1", name: "Nasional", slug: "nasional", color: "#e74c3c" } as never,
-      author: { id: "1", name: "Ahmad Fauzi", image: null } as never,
-      viewCount: 125000 as unknown as bigint,
-      publishedAt: new Date("2026-07-28T08:00:00Z"),
-      readTime: 5,
-    },
-    {
-      id: "2",
-      title: "Timnas Indonesia Lolos ke Final Piala AFF 2026, Siap Rebut Gelar Perdana",
-      slug: "timnas-indonesia-lolos-final-piala-aff",
-      excerpt: "Garuda Nusantara memastikan tiket final setelah mengalahkan Vietnam 3-1 dalam pertandingan dramatis di Stadion Gelora Bung Karno.",
-      featuredImage: "https://picsum.photos/seed/hero2/1200/600",
-      category: { id: "2", name: "Olahraga", slug: "olahraga", color: "#d35400" } as never,
-      author: { id: "2", name: "Budi Santoso", image: null } as never,
-      viewCount: 98000 as unknown as bigint,
-      publishedAt: new Date("2026-07-28T06:00:00Z"),
-      readTime: 3,
-    },
-    {
-      id: "3",
-      title: "Startup Indonesia Raih Valuasi Unicorn Ketiga Tahun Ini, Sektor Fintech Mendominasi",
-      slug: "startup-indonesia-raih-valuasi-unicorn",
-      excerpt: "Ekosistem startup Indonesia terus berkembang pesat dengan tiga unicorn baru yang lahir dalam satu tahun, menarik investasi global.",
-      featuredImage: "https://picsum.photos/seed/hero3/1200/600",
-      category: { id: "3", name: "Teknologi", slug: "teknologi", color: "#16a085" } as never,
-      author: { id: "3", name: "Siti Rahayu", image: null } as never,
-      viewCount: 72000 as unknown as bigint,
-      publishedAt: new Date("2026-07-28T04:00:00Z"),
-      readTime: 4,
-    },
-  ];
-}
-
 interface HeroSectionProps {
   articles: ArticleWithRelations[];
 }
 
 export default function HeroSection({ articles }: HeroSectionProps) {
-  const displayArticles = articles.length > 0
-    ? articles
-    : (getDemoArticles() as ArticleWithRelations[]);
+  if (articles.length === 0) {
+    return (
+      <section className="bg-gray-100 dark:bg-slate-900">
+        <div className="container mx-auto px-4 py-12 text-center">
+          <p className="text-gray-500 dark:text-gray-400">Memuat berita terbaru...</p>
+        </div>
+      </section>
+    );
+  }
 
-  const mainArticle = displayArticles[0];
+  const displayArticles = articles;
   const sideArticles = displayArticles.slice(1, 5);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);

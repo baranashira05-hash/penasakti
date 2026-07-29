@@ -1,74 +1,56 @@
 import { MetadataRoute } from "next";
-import { CATEGORIES } from "@/lib/utils";
+import prisma from "@/lib/prisma";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+const BASE_URL = "https://penasakti-cnrk.vercel.app";
+
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: APP_URL,
-      lastModified: new Date(),
-      changeFrequency: "always",
-      priority: 1,
-    },
-    {
-      url: `${APP_URL}/tentang-kami`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${APP_URL}/redaksi`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${APP_URL}/kontak`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.4,
-    },
-    {
-      url: `${APP_URL}/video`,
-      lastModified: new Date(),
-      changeFrequency: "hourly",
-      priority: 0.8,
-    },
-    {
-      url: `${APP_URL}/foto`,
-      lastModified: new Date(),
-      changeFrequency: "hourly",
-      priority: 0.7,
-    },
+    { url: BASE_URL, lastModified: new Date(), changeFrequency: "hourly", priority: 1 },
+    { url: `${BASE_URL}/store`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE_URL}/live`, lastModified: new Date(), changeFrequency: "always", priority: 0.9 },
+    { url: `${BASE_URL}/pencarian`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
+    { url: `${BASE_URL}/pasang-iklan`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE_URL}/tulis-berita`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE_URL}/tentang-kami`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
+    { url: `${BASE_URL}/kontak`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
   ];
 
-  const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((cat) => ({
-    url: `${APP_URL}/kategori/${cat.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "hourly" as const,
-    priority: 0.9,
-  }));
-
-  // In production, fetch articles from DB
+  // Get all published articles for sitemap
   let articlePages: MetadataRoute.Sitemap = [];
   try {
-    const prisma = await import("@/lib/prisma").then((m) => m.default);
     const articles = await prisma.article.findMany({
       where: { status: "PUBLISHED" },
-      select: { slug: true, updatedAt: true },
+      select: { slug: true, updatedAt: true, publishedAt: true },
       orderBy: { publishedAt: "desc" },
-      take: 5000,
+      take: 5000, // Limit for performance
     });
+
     articlePages = articles.map((article) => ({
-      url: `${APP_URL}/artikel/${article.slug}`,
-      lastModified: article.updatedAt,
-      changeFrequency: "weekly" as const,
+      url: `${BASE_URL}/artikel/${article.slug}`,
+      lastModified: article.updatedAt || article.publishedAt || new Date(),
+      changeFrequency: "daily" as const,
       priority: 0.8,
     }));
   } catch {
     // DB not available
   }
 
-  return [...staticPages, ...categoryPages, ...articlePages];
+  // Get categories
+  let categoryPages: MetadataRoute.Sitemap = [];
+  try {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      select: { slug: true },
+    });
+    categoryPages = categories.map((cat) => ({
+      url: `${BASE_URL}/kategori/${cat.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.7,
+    }));
+  } catch {}
+
+  return [...staticPages, ...articlePages, ...categoryPages];
 }

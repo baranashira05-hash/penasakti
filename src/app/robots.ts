@@ -1,22 +1,22 @@
 import { MetadataRoute } from "next";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
-
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/dashboard/", "/api/", "/admin/"],
+        disallow: ["/dashboard/", "/api/", "/login", "/register"],
       },
       {
         userAgent: "Googlebot",
         allow: "/",
-        disallow: ["/dashboard/", "/api/"],
+      },
+      {
+        userAgent: "Googlebot-News",
+        allow: "/artikel/",
       },
     ],
-    sitemap: `${APP_URL}/sitemap.xml`,
-    host: APP_URL,
+    sitemap: "https://penasakti-cnrk.vercel.app/sitemap.xml",
   };
 }
