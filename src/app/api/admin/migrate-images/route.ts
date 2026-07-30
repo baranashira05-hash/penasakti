@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v2 as cloudinary } from "cloudinary";
+import { put } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -7,41 +7,44 @@ import prisma from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Download gambar dari URL dan upload ke Vercel Blob
+async function migrateToBlob(wpUrl: string, filename: string): Promise<string | null> {
+  const urls = [
+    wpUrl, // Coba langsung
+    `https://web.archive.org/web/2025/${wpUrl}`, // Wayback Machine 2025
+    `https://web.archive.org/web/2024/${wpUrl}`, // Wayback Machine 2024
+  ];
 
-async function migrateImage(wpUrl: string, slug: string): Promise<string | null> {
-  const publicId = `penasakti/articles/${slug.replace(/[^a-z0-9]/g, "-").substring(0, 60)}`;
-  // Coba langsung dari URL WP
-  try {
-    const result = await cloudinary.uploader.upload(wpUrl, {
-      public_id: publicId,
-      overwrite: false,
-      resource_type: "image",
-      transformation: [{ quality: "auto:good", fetch_format: "auto", width: 800, crop: "limit" }],
-    });
-    return result.secure_url;
-  } catch {}
-  // Fallback: Wayback Machine
-  try {
-    const archiveUrl = `https://web.archive.org/web/2025/${wpUrl}`;
-    const result = await cloudinary.uploader.upload(archiveUrl, {
-      public_id: `${publicId}-arch`,
-      overwrite: false,
-      resource_type: "image",
-      transformation: [{ quality: "auto:good", fetch_format: "auto", width: 800, crop: "limit" }],
-    });
-    return result.secure_url;
-  } catch {}
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0" },
+        signal: AbortSignal.timeout(15000),
+      });
+
+      if (!res.ok) continue;
+
+      const contentType = res.headers.get("content-type") || "image/jpeg";
+      if (!contentType.startsWith("image/")) continue;
+
+      const buffer = await res.arrayBuffer();
+      if (buffer.byteLength < 1000) continue; // Skip file terlalu kecil (mungkin error page)
+
+      const blobPath = `wp-migration/${filename}`;
+      const blob = await put(blobPath, buffer, {
+        access: "public",
+        contentType,
+        addRandomSuffix: false,
+      });
+
+      return blob.url;
+    } catch {}
+  }
   return null;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth via session — tidak perlu secret manual
     const session = await getServerSession(authOptions);
     if (!session?.user?.role || !["SUPER_ADMIN", "ADMIN"].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized - Silakan login sebagai Admin" }, { status: 401 });
@@ -68,9 +71,18 @@ export async function POST(req: NextRequest) {
 
     for (const article of articles) {
       if (!article.featuredImage || !article.slug) { failed++; continue; }
-      const newUrl = await migrateImage(article.featuredImage, article.slug);
+
+      // Ambil nama file dari URL
+      const urlParts = article.featuredImage.split("/");
+      const filename = urlParts[urlParts.length - 1] || `${article.slug}.jpg`;
+
+      const newUrl = await migrateToBlob(article.featuredImage, filename);
+
       if (newUrl) {
-        await prisma.article.update({ where: { id: article.id }, data: { featuredImage: newUrl } });
+        await prisma.article.update({
+          where: { id: article.id },
+          data: { featuredImage: newUrl },
+        });
         success++;
       } else {
         failed++;
@@ -101,7 +113,13 @@ export async function GET() {
       where: { featuredImage: { contains: "wp-content/uploads" } },
     });
     const migrated = await prisma.article.count({
-      where: { featuredImage: { contains: "cloudinary" } },
+      where: {
+        OR: [
+          { featuredImage: { contains: "vercel-blob" } },
+          { featuredImage: { contains: "public.blob.vercel" } },
+          { featuredImage: { contains: "cloudinary" } },
+        ]
+      },
     });
     const valid = await prisma.article.count({
       where: { featuredImage: { not: null } },

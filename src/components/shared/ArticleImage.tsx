@@ -54,11 +54,10 @@ function isValidSrc(src: string): boolean {
   // URL WordPress lama — tidak bisa diakses
   if (src.includes("penasakti.com/wp-content/uploads/")) return false;
   if (src.includes("/api/proxy-image")) return false;
-  // Data URL (base64) — bisa
+  // Semua URL https yang valid
+  if (src.startsWith("https://")) return true;
+  if (src.startsWith("http://")) return true;
   if (src.startsWith("data:")) return true;
-  // URL eksternal — bisa (Cloudinary, postimg, dll)
-  if (src.startsWith("https://") || src.startsWith("http://")) return true;
-  // Path internal
   if (src.startsWith("/")) return true;
   return false;
 }
