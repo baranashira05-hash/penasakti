@@ -29,21 +29,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const meta = getYoastMeta(post);
     const featuredImage = getFeaturedImage(post);
 
-    // Ambil URL gambar asli (masih bisa http://cdn.penasakti.com)
-    const rawImageUrl = meta.ogImage || (featuredImage ? getImageUrl(featuredImage) : null);
+    // Ambil URL gambar asli
+    // getImageUrl() mengkonversi https://penasakti.com/wp-content → http://cdn.penasakti.com
+    // Kita gunakan URL HTTPS langsung (penasakti.com) agar bisa diakses crawler
+    const rawImageUrl = meta.ogImage || featuredImage || null;
+    
+    // Normalise: pastikan selalu HTTPS, tidak ada cdn subdomain HTTP
+    function toHttps(url: string | null): string | null {
+      if (!url) return null;
+      return url
+        .replace("http://cdn.penasakti.com", "https://penasakti.com")
+        .replace("http://www.penasakti.com", "https://www.penasakti.com")
+        .replace("http://penasakti.com", "https://penasakti.com");
+    }
+    
+    const directImageUrl = toHttps(rawImageUrl);
 
-    // Bangun URL dynamic OG image via /api/og agar:
-    // 1. Selalu HTTPS (tidak ada masalah mixed content di crawler)
-    // 2. Gambar di-render server-side, pasti muncul di WhatsApp/FB/Telegram
-    // 3. Fallback ke gradient jika gambar asli tidak ada
-    const ogParams = new URLSearchParams({
-      title: meta.metaTitle.slice(0, 100),
-      category: "Berita",
-      author: "Redaksi PenaSakti",
-      ...(meta.metaDesc && { excerpt: meta.metaDesc.slice(0, 130) }),
-      ...(rawImageUrl && { image: rawImageUrl }),
-    });
-    const ogImageUrl = `${APP_URL}/api/og?${ogParams.toString()}`;
+    // Gunakan gambar artikel asli sebagai og:image agar ukuran cukup besar
+    // (WhatsApp/Telegram butuh min ~200KB untuk thumbnail besar)
+    // Fallback ke /api/og hanya jika tidak ada gambar sama sekali
+    const ogImageUrl = directImageUrl
+      ? directImageUrl
+      : `${APP_URL}/api/og?title=${encodeURIComponent(meta.metaTitle.slice(0, 100))}&category=Berita&author=${encodeURIComponent("Redaksi PenaSakti")}`;
 
     return {
       title: meta.metaTitle,

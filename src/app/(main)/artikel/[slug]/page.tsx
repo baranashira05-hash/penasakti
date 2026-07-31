@@ -56,25 +56,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const keywords = article.tags.map(t => t.tag.name);
 
     // Prioritas: ogImage (field SEO khusus) → featuredImage
-    // Jika URL relatif (mulai /), jadikan absolute dengan BASE_URL
+    // Jadikan absolute jika URL relatif
     const rawImage = article.ogImage || article.featuredImage;
-    const image = rawImage
+    const directImage = rawImage
       ? rawImage.startsWith("/")
         ? `${BASE_URL}${rawImage}`
         : rawImage
       : null;
 
-    // Bangun URL dynamic OG image via /api/og agar:
-    // 1. Selalu HTTPS — crawler tidak diblokir mixed content
-    // 2. Gambar di-render server-side, pasti muncul di WhatsApp/FB/Telegram
-    const ogParams = new URLSearchParams({
-      title: title.slice(0, 100),
-      category: article.category?.name || "Berita",
-      author: article.author?.name || "Redaksi PenaSakti",
-      ...(description && { excerpt: description.slice(0, 130) }),
-      ...(image && { image }),
-    });
-    const ogImageUrl = `${BASE_URL}/api/og?${ogParams.toString()}`;
+    // Gunakan gambar artikel asli sebagai og:image agar ukuran file cukup besar
+    // (WhatsApp/Telegram membutuhkan gambar min ~200KB untuk menampilkan thumbnail)
+    // Fallback ke /api/og hanya jika tidak ada gambar sama sekali
+    const ogImageUrl = directImage
+      ? directImage
+      : `${BASE_URL}/api/og?title=${encodeURIComponent(title.slice(0, 100))}&category=${encodeURIComponent(article.category?.name || "Berita")}&author=${encodeURIComponent(article.author?.name || "Redaksi PenaSakti")}`;
 
     return {
       title,
