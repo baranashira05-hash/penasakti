@@ -87,10 +87,26 @@ export default function ContactPage() {
   ];
 
   const socialMedia = [
-    { icon: Globe, label: "Facebook", href: "https://facebook.com/penasakti", color: "bg-blue-600 hover:bg-blue-700" },
-    { icon: Share2, label: "Twitter/X", href: "https://twitter.com/penasakti", color: "bg-slate-900 hover:bg-slate-800" },
-    { icon: Camera, label: "Instagram", href: "https://instagram.com/penasakti", color: "bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 hover:opacity-90" },
-    { icon: PlayCircle, label: "YouTube", href: "https://youtube.com/@penasakti", color: "bg-red-600 hover:bg-red-700" },
+    {
+      label: "TikTok",
+      href: "https://www.tiktok.com/@penasakti.com",
+      color: "bg-black hover:bg-gray-800",
+      svg: (
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/>
+        </svg>
+      ),
+    },
+    {
+      label: "YouTube",
+      href: "https://www.youtube.com/@mediapenasaktinews",
+      color: "bg-red-600 hover:bg-red-700",
+      svg: (
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -139,7 +155,7 @@ export default function ContactPage() {
             <div className="p-6 rounded-2xl bg-card border border-border">
               <h2 className="text-xl font-bold mb-4">Ikuti Kami</h2>
               <div className="grid grid-cols-2 gap-3">
-                {socialMedia.map(({ icon: Icon, label, href, color }) => (
+                {socialMedia.map(({ label, href, color, svg }) => (
                   <a
                     key={label}
                     href={href}
@@ -147,7 +163,7 @@ export default function ContactPage() {
                     rel="noopener noreferrer"
                     className={`flex items-center gap-3 p-3 rounded-xl text-white ${color} transition-all`}
                   >
-                    <Icon className="w-5 h-5" />
+                    {svg}
                     <span className="font-medium text-sm">{label}</span>
                   </a>
                 ))}

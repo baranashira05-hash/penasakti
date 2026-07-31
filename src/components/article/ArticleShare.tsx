@@ -14,22 +14,16 @@ export default function ArticleShare({ url, title }: ArticleShareProps) {
 
   const shareLinks = [
     {
-      name: "Facebook",
-      color: "bg-blue-600 hover:bg-blue-700",
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      icon: <span className="text-xs font-bold">f</span>,
+      name: "WhatsApp",
+      icon: <MessageCircle className="w-4 h-4" />,
+      color: "bg-green-500 hover:bg-green-600",
+      href: `https://wa.me/?text=${encodeURIComponent(title + " " + url)}`,
     },
     {
       name: "Twitter/X",
       color: "bg-black hover:bg-gray-800",
       href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
       icon: <span className="text-xs font-bold">𝕏</span>,
-    },
-    {
-      name: "WhatsApp",
-      icon: <MessageCircle className="w-4 h-4" />,
-      color: "bg-green-500 hover:bg-green-600",
-      href: `https://wa.me/?text=${encodeURIComponent(title + " " + url)}`,
     },
   ];
 
