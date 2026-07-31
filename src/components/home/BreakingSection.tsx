@@ -1,26 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Clock } from "lucide-react";
 
-export default function BreakingSection() {
-  const [articles, setArticles] = useState<any[]>([]);
+interface BreakingSectionProps {
+  articles?: any[];
+}
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/articles?limit=4");
-        if (res.ok) {
-          const json = await res.json();
-          setArticles(json.data || []);
-        }
-      } catch {}
-    }
-    load();
-  }, []);
-
-  if (articles.length === 0) return null;
+export default function BreakingSection({ articles = [] }: BreakingSectionProps) {
+  if (articles.length === 0) {
+    return (
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-6 bg-red-600 rounded-full" />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Berita Terkini</h2>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex gap-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 animate-pulse">
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-slate-700 flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded w-1/4" />
+                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-full" />
+                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-3/4" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section>
@@ -53,7 +64,9 @@ export default function BreakingSection() {
               </h3>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : "-"}
+                {article.publishedAt
+                  ? new Date(article.publishedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+                  : "-"}
               </p>
             </div>
           </Link>

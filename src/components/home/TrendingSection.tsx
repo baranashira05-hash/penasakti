@@ -10,30 +10,24 @@ interface TrendingSectionProps {
 
 export default function TrendingSection({ articles: initialArticles }: TrendingSectionProps) {
   const [articles, setArticles] = useState<any[]>(initialArticles || []);
-  const [loading, setLoading] = useState(!initialArticles || initialArticles.length === 0);
+  const [loading, setLoading] = useState(false);
 
+  // Hanya fetch kalau tidak ada data dari server
   useEffect(() => {
-    // Selalu fetch fresh data berdasarkan viewCount terbanyak
+    if (initialArticles && initialArticles.length > 0) return;
     async function load() {
       try {
         setLoading(true);
-        // Coba sort by views dulu
         let res = await fetch("/api/articles?limit=10&sort=views&status=PUBLISHED");
         if (res.ok) {
           const json = await res.json();
-          const data = json.data || json.articles || [];
-          if (data.length > 0) {
-            setArticles(data);
-            setLoading(false);
-            return;
-          }
+          const data = json.data || [];
+          if (data.length > 0) { setArticles(data); setLoading(false); return; }
         }
-        // Fallback: ambil artikel terbaru
         res = await fetch("/api/articles?limit=10&status=PUBLISHED");
         if (res.ok) {
           const json = await res.json();
-          const data = json.data || json.articles || [];
-          setArticles(data);
+          setArticles(json.data || []);
         }
       } catch {}
       setLoading(false);

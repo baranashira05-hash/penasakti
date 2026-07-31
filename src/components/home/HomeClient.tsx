@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Clock, Eye } from "lucide-react";
 import HeroSection from "@/components/home/HeroSection";
@@ -12,31 +12,13 @@ import NewsletterSection from "@/components/home/NewsletterSection";
 import AdBanner from "@/components/shared/AdBanner";
 import ArticleImage from "@/components/shared/ArticleImage";
 
-export default function HomeClient() {
-  const [articles, setArticles] = useState<any[]>([]);
+interface HomeClientProps {
+  initialArticles?: any[];
+  initialTrending?: any[];
+}
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/articles?limit=30");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data && json.data.length > 0) {
-            setArticles(json.data.map((a: any) => ({
-              ...a,
-              viewCount: a.viewCount || 0,
-              commentCount: a.commentCount || 0,
-              readTime: a.readTime || 3,
-              category: a.category || { id: "1", name: "Berita", slug: "berita", color: "#2563eb" },
-              author: a.author || { id: "1", name: "Redaksi", image: null },
-              tags: a.tags || [],
-            })));
-          }
-        }
-      } catch {}
-    }
-    load();
-  }, []);
+export default function HomeClient({ initialArticles = [], initialTrending = [] }: HomeClientProps) {
+  const articles = initialArticles;
 
   return (
     <>
@@ -46,8 +28,8 @@ export default function HomeClient() {
       <AdBanner position="HEADER" className="my-2" />
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2"><BreakingSection /></div>
-          <div><TrendingSection articles={articles.slice(0, 10)} /></div>
+          <div className="lg:col-span-2"><BreakingSection articles={articles.slice(0, 4)} /></div>
+          <div><TrendingSection articles={initialTrending.length > 0 ? initialTrending : articles.slice(0, 10)} /></div>
         </div>
       </div>
 
