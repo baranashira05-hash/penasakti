@@ -171,3 +171,19 @@
   height: 0;
   pointer-events: none;
 }
+
+/* ResizableImage node — gambar di dalam editor */
+.ProseMirror figure {
+  display: block;
+  margin: 12px 0;
+  width: 100%;
+}
+.ProseMirror figure img {
+  border-radius: 4px;
+  display: block;
+  max-width: 100%;
+}
+.ProseMirror [data-node-view-wrapper] {
+  display: block;
+  width: 100%;
+}

@@ -4,8 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
+import { ResizableImage } from "@/components/dashboard/ResizableImage";
 import Placeholder from "@tiptap/extension-placeholder";
 import Youtube from "@tiptap/extension-youtube";
 import { Table } from "@tiptap/extension-table";
@@ -82,7 +82,7 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({ inline: false, allowBase64: true }),
+      ResizableImage,
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: "Mulai menulis artikel Anda..." }),
       Youtube.configure({ controls: false }),
@@ -254,7 +254,10 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
                   }, title: "Link", active: editor.isActive("link") },
                   { icon: ImageIcon, action: () => {
                     const url = prompt("URL gambar:");
-                    if (url) editor.chain().focus().setImage({ src: url }).run();
+                    if (url) editor.chain().focus().insertContent({
+                      type: "resizableImage",
+                      attrs: { src: url, alt: "", width: "100%", align: "center" },
+                    }).run();
                   }, title: "Gambar" },
                   { icon: TableIcon, action: () => {
                     const url = prompt("URL YouTube:");
