@@ -62,7 +62,8 @@ export function getInitials(name: string): string {
 }
 
 export function absoluteUrl(path: string): string {
-  return `${process.env.NEXT_PUBLIC_APP_URL}${path}`;
+  const { SITE_URL } = require("@/lib/site-url");
+  return `${SITE_URL}${path}`;
 }
 
 export function isValidEmail(email: string): boolean {

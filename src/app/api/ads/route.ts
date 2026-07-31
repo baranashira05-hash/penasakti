@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+// Iklan jarang berubah — cache 5 menit di CDN, stale 10 menit
+// Override header "no-store" yang ada di next.config.ts untuk route ini
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
@@ -18,7 +20,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         name: true,
-        code: forDisplay ? true : false, // Only include code when needed for display
+        code: forDisplay ? true : false,
         position: true,
         status: true,
         impressions: true,
@@ -29,13 +31,15 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // For display: only return ads with small code (< 50KB) to prevent timeout
-    if (forDisplay) {
-      const filteredAds = ads.filter((ad: any) => !ad.code || ad.code.length < 50000);
-      return NextResponse.json({ success: true, data: filteredAds });
-    }
+    // For display: only return ads with code < 50KB to prevent timeout
+    const data = forDisplay
+      ? ads.filter((ad: any) => !ad.code || ad.code.length < 50000)
+      : ads;
 
-    return NextResponse.json({ success: true, data: ads });
+    const res = NextResponse.json({ success: true, data });
+    // Cache 5 menit di browser & CDN — iklan tidak butuh real-time
+    res.headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
+    return res;
   } catch (error) {
     return NextResponse.json({ success: true, data: [] });
   }

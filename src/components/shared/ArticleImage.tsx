@@ -13,6 +13,7 @@ interface ArticleImageProps {
   sizes?: string;
   priority?: boolean;
   category?: string;
+  quality?: number;
 }
 
 const CATEGORY_CONFIG: Record<string, { bg: string; label: string }> = {
@@ -37,7 +38,6 @@ function Placeholder({ category }: { category?: string }) {
 
   return (
     <div className={`w-full h-full ${cfg.bg} flex flex-col items-center justify-center gap-2 select-none`}>
-      {/* Logo/Icon */}
       <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
         <svg className="w-5 h-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -50,16 +50,34 @@ function Placeholder({ category }: { category?: string }) {
   );
 }
 
+/**
+ * Cek apakah URL gambar valid dan bisa dioptimasi oleh Next.js Image.
+ * URL WordPress lama (wp-content/uploads) tidak bisa diakses langsung —
+ * tampilkan placeholder saja daripada gambar broken.
+ */
 function isValidSrc(src: string): boolean {
+  if (!src) return false;
   // URL WordPress lama — tidak bisa diakses
   if (src.includes("penasakti.com/wp-content/uploads/")) return false;
   if (src.includes("/api/proxy-image")) return false;
-  // Semua URL https yang valid
+  // Semua URL https/http yang valid
   if (src.startsWith("https://")) return true;
   if (src.startsWith("http://")) return true;
   if (src.startsWith("data:")) return true;
   if (src.startsWith("/")) return true;
   return false;
+}
+
+/**
+ * Semua URL https/http yang valid dioptimasi oleh Next.js Image.
+ * remotePatterns di next.config.ts sudah mencakup semua domain utama.
+ * URL relatif (/) juga dioptimasi secara default.
+ * Hanya data: URI yang tidak bisa dioptimasi Next.js (bypass saja).
+ */
+function isOptimizableUrl(src: string): boolean {
+  if (src.startsWith("data:")) return false;
+  // URL relatif & semua https/http dioptimasi
+  return true;
 }
 
 export default function ArticleImage({
@@ -72,6 +90,7 @@ export default function ArticleImage({
   sizes,
   priority,
   category,
+  quality = 75,
 }: ArticleImageProps) {
   const [error, setError] = useState(false);
 
@@ -79,17 +98,28 @@ export default function ArticleImage({
     return <Placeholder category={category} />;
   }
 
+  // Gambar dari domain yang terdaftar dioptimasi (compress + webp/avif)
+  // Gambar dari domain eksternal lain → unoptimized agar tidak error
+  const shouldOptimize = isOptimizableUrl(src);
+
+  const commonProps = {
+    alt: alt || "",
+    className,
+    priority: priority ?? false,
+    quality: shouldOptimize ? quality : undefined,
+    unoptimized: !shouldOptimize,
+    onError: () => setError(true),
+    // Lazy loading otomatis untuk gambar non-priority
+    loading: priority ? ("eager" as const) : ("lazy" as const),
+  };
+
   if (fill) {
     return (
       <Image
         src={src}
-        alt={alt}
         fill
-        className={className}
-        sizes={sizes || "(max-width: 768px) 100vw, 50vw"}
-        priority={priority}
-        onError={() => setError(true)}
-        unoptimized
+        sizes={sizes || "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
+        {...commonProps}
       />
     );
   }
@@ -97,14 +127,10 @@ export default function ArticleImage({
   return (
     <Image
       src={src}
-      alt={alt}
       width={width || 600}
       height={height || 400}
-      className={className}
       sizes={sizes}
-      priority={priority}
-      onError={() => setError(true)}
-      unoptimized
+      {...commonProps}
     />
   );
 }

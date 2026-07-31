@@ -2,39 +2,56 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __prismaPool: Pool | undefined;
+  // eslint-disable-next-line no-var
+  var __prisma: PrismaClient | undefined;
+}
+
 function getConnectionString(): string {
   return process.env.DATABASE_URL || process.env.DIRECT_URL || "";
 }
 
-function createPrismaClient(): PrismaClient {
-  const url = getConnectionString();
+function getPool(): Pool {
+  // Reuse pool di semua environment — krusial untuk Vercel serverless
+  // yang bisa memiliki banyak cold start sekaligus
+  if (globalThis.__prismaPool) return globalThis.__prismaPool;
 
   const pool = new Pool({
-    connectionString: url || "postgresql://skip:skip@localhost:5432/skip",
-    max: 10,
+    connectionString: getConnectionString() || "postgresql://skip:skip@localhost:5432/skip",
+    // Vercel serverless: maksimal 5 koneksi per instance
+    // (Supabase pgBouncer mengelola pooling di sisi server)
+    max: 5,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
+    // Penting untuk pgBouncer: jangan gunakan prepared statements
+    // karena pgBouncer dalam transaction mode tidak support prepared statements
   });
 
-  const adapter = new PrismaPg(pool);
-  return new PrismaClient({ adapter });
+  globalThis.__prismaPool = pool;
+  return pool;
 }
 
-// In production on Vercel (serverless), don't cache across requests
-// Each function invocation gets fresh connection
-const globalForPrisma = globalThis as unknown as { __prisma?: PrismaClient };
+function createPrismaClient(): PrismaClient {
+  const pool = getPool();
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+  });
+}
 
+// Singleton pattern — satu instance untuk seluruh lifetime process
+// Ini penting agar tidak terjadi connection pool exhaustion di Vercel
 let prisma: PrismaClient;
 
-if (process.env.NODE_ENV === "production") {
-  prisma = createPrismaClient();
+if (globalThis.__prisma) {
+  prisma = globalThis.__prisma;
 } else {
-  if (!globalForPrisma.__prisma) {
-    globalForPrisma.__prisma = createPrismaClient();
-  }
-  prisma = globalForPrisma.__prisma;
+  prisma = createPrismaClient();
+  globalThis.__prisma = prisma;
 }
 
 export default prisma;
-
 export { prisma };

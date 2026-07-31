@@ -5,6 +5,7 @@ import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
 import prisma from "@/lib/prisma";
 import { CATEGORIES } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site-url";
 import type { ArticleWithRelations } from "@/types";
 
 interface Props {
@@ -23,7 +24,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const BASE_URL = SITE_URL;
 
   // Coba ambil dari database dulu
   let catName = slug.charAt(0).toUpperCase() + slug.slice(1);
@@ -169,7 +170,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     articles = generateDemoArticles(slug);
   }
 
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const BASE_URL = SITE_URL;
 
   // JSON-LD CollectionPage untuk halaman kategori
   const collectionLd = {

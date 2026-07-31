@@ -1,25 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Flame, Eye } from "lucide-react";
 
-export default function PopularArticles() {
-  const [articles, setArticles] = useState<any[]>([]);
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  viewCount?: number | bigint;
+}
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/articles?limit=5&sort=views");
-        if (res.ok) {
-          const json = await res.json();
-          setArticles(json.data || []);
-        }
-      } catch {}
-    }
-    load();
-  }, []);
+interface PopularArticlesProps {
+  articles?: Article[];
+}
 
+export default function PopularArticles({ articles = [] }: PopularArticlesProps) {
   if (articles.length === 0) return null;
 
   return (
@@ -30,7 +25,7 @@ export default function PopularArticles() {
       </div>
 
       <ol className="space-y-4">
-        {articles.map((item: any, index: number) => (
+        {articles.map((item, index) => (
           <li key={item.id} className="flex gap-3">
             <span className={`flex-shrink-0 text-xl font-black w-7 ${index < 3 ? "text-red-500" : "text-gray-300 dark:text-gray-600"}`}>
               {index + 1}
@@ -40,7 +35,8 @@ export default function PopularArticles() {
                 {item.title}
               </h4>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
-                <Eye className="w-3 h-3" /> {(item.viewCount || 0).toLocaleString()} views
+                <Eye className="w-3 h-3" />
+                {Number(item.viewCount || 0).toLocaleString()} views
               </p>
             </Link>
           </li>

@@ -5,6 +5,7 @@ import { Tag } from "lucide-react";
 import ArticleCard from "@/components/article/ArticleCard";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
+import { SITE_URL } from "@/lib/site-url";
 import type { ArticleWithRelations } from "@/types";
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
 
 async function getTagData(slug: string, page: number) {
   try {
-    const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const base = SITE_URL;
     const res = await fetch(
       `${base}/api/articles?tag=${slug}&status=PUBLISHED&limit=12&page=${page}`,
       { next: { revalidate: 60 } }
@@ -31,7 +32,7 @@ async function getTagData(slug: string, page: number) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const BASE_URL = SITE_URL;
   const tagName = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const title = `#${tagName} - Berita & Artikel Terkini | PenaSakti`;
   const description = `Kumpulan berita dan artikel terbaru tentang ${tagName}. Baca informasi terkini, terpercaya, dan berimbang hanya di PenaSakti.`;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { SITE_URL } from "@/lib/site-url";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+const APP_URL = SITE_URL;
 
 const SAMPLE_ARTICLES = [
   {

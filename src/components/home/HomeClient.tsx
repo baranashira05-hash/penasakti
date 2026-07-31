@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Clock, Eye } from "lucide-react";
 import HeroSection from "@/components/home/HeroSection";
@@ -15,9 +14,14 @@ import ArticleImage from "@/components/shared/ArticleImage";
 interface HomeClientProps {
   initialArticles?: any[];
   initialTrending?: any[];
+  popularArticles?: any[];
 }
 
-export default function HomeClient({ initialArticles = [], initialTrending = [] }: HomeClientProps) {
+export default function HomeClient({
+  initialArticles = [],
+  initialTrending = [],
+  popularArticles = [],
+}: HomeClientProps) {
   const articles = initialArticles;
 
   return (
@@ -26,6 +30,7 @@ export default function HomeClient({ initialArticles = [], initialTrending = [] 
       <LiveBanner />
 
       <AdBanner position="HEADER" className="my-2" />
+
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Kolom kiri: Berita Terkini + Trending dengan gambar */}
@@ -35,9 +40,11 @@ export default function HomeClient({ initialArticles = [], initialTrending = [] 
               trendingArticles={initialTrending.length > 0 ? initialTrending : articles.slice(0, 5)}
             />
           </div>
-          {/* Kolom kanan: Trending list ringkas #6-10 */}
+          {/* Kolom kanan: Trending ringkas #6-10 */}
           <div>
-            <TrendingSection articles={initialTrending.length > 0 ? initialTrending.slice(5, 15) : articles.slice(5, 15)} />
+            <TrendingSection
+              articles={initialTrending.length > 0 ? initialTrending.slice(5, 15) : articles.slice(5, 15)}
+            />
           </div>
         </div>
       </div>
@@ -63,7 +70,9 @@ export default function HomeClient({ initialArticles = [], initialTrending = [] 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
                 <div className="absolute bottom-2 left-2 right-2">
-                  <span className="text-[9px] font-bold uppercase text-white bg-blue-600 px-1.5 py-0.5 rounded">{a.category?.name}</span>
+                  <span className="text-[9px] font-bold uppercase text-white bg-blue-600 px-1.5 py-0.5 rounded">
+                    {a.category?.name}
+                  </span>
                 </div>
               </div>
               <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug">
@@ -84,7 +93,11 @@ export default function HomeClient({ initialArticles = [], initialTrending = [] 
             </div>
             <div className="space-y-4">
               {articles.slice(0, 15).map((a: any) => (
-                <Link key={a.id} href={`/artikel/${a.slug}`} className="group flex gap-4 p-3 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-300 bg-white dark:bg-slate-800 transition-all">
+                <Link
+                  key={a.id}
+                  href={`/artikel/${a.slug}`}
+                  className="group flex gap-4 p-3 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-300 bg-white dark:bg-slate-800 transition-all"
+                >
                   <div className="flex-shrink-0 relative w-24 h-16 sm:w-32 sm:h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700">
                     <ArticleImage
                       src={a.featuredImage}
@@ -96,19 +109,33 @@ export default function HomeClient({ initialArticles = [], initialTrending = [] 
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">{a.category?.name}</span>
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors mt-0.5 leading-snug">{a.title}</h3>
+                    <span className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">
+                      {a.category?.name}
+                    </span>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors mt-0.5 leading-snug">
+                      {a.title}
+                    </h3>
                     <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-500 dark:text-gray-400">
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : "-"}</span>
-                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{(a.viewCount || 0).toLocaleString()}</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {a.publishedAt
+                          ? new Date(a.publishedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+                          : "-"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {Number(a.viewCount || 0).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
           </div>
+
+          {/* Sidebar — data sudah dari server, tidak ada fetch di client */}
           <aside className="space-y-6">
-            <PopularArticles />
+            <PopularArticles articles={popularArticles} />
             <NewsletterSection />
           </aside>
         </div>
@@ -134,7 +161,9 @@ export default function HomeClient({ initialArticles = [], initialTrending = [] 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
                 <div className="absolute bottom-2 left-2 right-2">
-                  <span className="text-[9px] font-bold uppercase text-white/90 bg-emerald-600 px-1.5 py-0.5 rounded">{a.category?.name}</span>
+                  <span className="text-[9px] font-bold uppercase text-white/90 bg-emerald-600 px-1.5 py-0.5 rounded">
+                    {a.category?.name}
+                  </span>
                 </div>
               </div>
               <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug">

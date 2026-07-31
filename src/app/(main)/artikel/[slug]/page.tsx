@@ -12,7 +12,8 @@ import ArticleShare from "@/components/article/ArticleShare";
 // Crawler Google akan tetap bisa mengindeks karena ISR diaktifkan di bawah
 export const revalidate = 300; // revalidate setiap 5 menit
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+import { SITE_URL } from "@/lib/site-url";
+const BASE_URL = SITE_URL;
 
 interface Props {
   params: Promise<{ slug: string }>;
