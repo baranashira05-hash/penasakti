@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { CATEGORIES } from "@/lib/utils";
+import FooterNewsletterForm from "@/components/layout/FooterNewsletterForm";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -17,19 +18,7 @@ export default function Footer() {
             <p className="text-white/60 mb-6">
               Daftar newsletter PenaSakti dan jangan lewatkan satu berita pun
             </p>
-            <form className="flex gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Masukkan email Anda"
-                className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-red-600 hover:bg-red-600 text-white font-semibold rounded-xl transition-colors whitespace-nowrap"
-              >
-                Daftar
-              </button>
-            </form>
+            <FooterNewsletterForm />
           </div>
         </div>
       </div>
