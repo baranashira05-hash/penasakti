@@ -10,22 +10,73 @@ interface TrendingSectionProps {
 
 export default function TrendingSection({ articles: initialArticles }: TrendingSectionProps) {
   const [articles, setArticles] = useState<any[]>(initialArticles || []);
+  const [loading, setLoading] = useState(!initialArticles || initialArticles.length === 0);
 
   useEffect(() => {
-    if (articles.length > 0) return;
+    // Selalu fetch fresh data berdasarkan viewCount terbanyak
     async function load() {
       try {
-        const res = await fetch("/api/articles?limit=10&sort=views");
+        setLoading(true);
+        // Coba sort by views dulu
+        let res = await fetch("/api/articles?limit=10&sort=views&status=PUBLISHED");
         if (res.ok) {
           const json = await res.json();
-          setArticles(json.data || []);
+          const data = json.data || json.articles || [];
+          if (data.length > 0) {
+            setArticles(data);
+            setLoading(false);
+            return;
+          }
+        }
+        // Fallback: ambil artikel terbaru
+        res = await fetch("/api/articles?limit=10&status=PUBLISHED");
+        if (res.ok) {
+          const json = await res.json();
+          const data = json.data || json.articles || [];
+          setArticles(data);
         }
       } catch {}
+      setLoading(false);
     }
     load();
   }, []);
 
-  if (articles.length === 0) return null;
+  // Skeleton loading
+  if (loading) {
+    return (
+      <section className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="w-5 h-5 text-red-500" />
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Trending Hari Ini</h2>
+        </div>
+        <ol className="space-y-3">
+          {[...Array(8)].map((_, i) => (
+            <li key={i} className="flex items-start gap-3 animate-pulse">
+              <span className="w-8 h-6 bg-gray-200 dark:bg-slate-700 rounded" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-full" />
+                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-3/4" />
+                <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded w-1/3 mt-1" />
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    );
+  }
+
+  // Fallback kalau benar-benar tidak ada data
+  if (articles.length === 0) {
+    return (
+      <section className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="w-5 h-5 text-red-500" />
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Trending Hari Ini</h2>
+        </div>
+        <p className="text-sm text-gray-400 text-center py-8">Memuat berita trending...</p>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700">
@@ -50,12 +101,14 @@ export default function TrendingSection({ articles: initialArticles }: TrendingS
                     {article.category?.name || "BERITA"}
                   </span>
                   <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
-                    <Eye className="w-3 h-3" /> {(article.viewCount || 0).toLocaleString()} views
+                    <Eye className="w-3 h-3" /> {Number(article.viewCount || 0).toLocaleString()} views
                   </span>
                 </div>
               </div>
             </Link>
-            {index < 9 && <div className="mt-3 border-b border-gray-100 dark:border-slate-700" />}
+            {index < articles.slice(0, 10).length - 1 && (
+              <div className="mt-3 border-b border-gray-100 dark:border-slate-700" />
+            )}
           </li>
         ))}
       </ol>
