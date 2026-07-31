@@ -50,11 +50,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       locale: "id_ID",
       siteName: "PenaSakti",
+      images: [
+        {
+          url: `${BASE_URL}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: `${title} - PenaSakti`,
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
+      images: [`${BASE_URL}/og-image.jpg`],
       site: "@penasakti",
     },
     robots: {

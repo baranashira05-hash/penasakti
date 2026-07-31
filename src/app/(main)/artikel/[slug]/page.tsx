@@ -56,6 +56,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const image = article.ogImage || article.featuredImage;
     const keywords = article.tags.map(t => t.tag.name);
 
+    // Buat URL untuk dynamic OG image agar gambar selalu muncul di WhatsApp/Telegram/Facebook
+    // Params di-encode agar aman sebagai query string
+    const ogParams = new URLSearchParams({
+      title: title.slice(0, 100),
+      category: article.category?.name || "Berita",
+      author: article.author?.name || "Redaksi PenaSakti",
+      ...(description && { excerpt: description.slice(0, 130) }),
+      ...(image && { image }),
+    });
+    const ogImageUrl = `${BASE_URL}/api/og?${ogParams.toString()}`;
+
     return {
       title,
       description,
@@ -64,7 +75,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title,
         description,
-        images: image ? [{ url: image, width: 1200, height: 630, alt: title }] : [],
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
         type: "article",
         publishedTime: article.publishedAt?.toISOString(),
         modifiedTime: article.updatedAt?.toISOString(),
@@ -78,7 +96,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: "summary_large_image",
         title,
         description,
-        images: image ? [image] : undefined,
+        images: [ogImageUrl],
         site: "@penasakti",
       },
       alternates: {

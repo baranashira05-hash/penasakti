@@ -57,11 +57,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: "id_ID",
       siteName: "PenaSakti",
       url: `${BASE_URL}/kategori/${slug}`,
+      images: [
+        {
+          url: `${BASE_URL}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: `Berita ${catName} Terkini - PenaSakti`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `Berita ${catName} Terkini | PenaSakti`,
       description: catDesc,
+      images: [`${BASE_URL}/og-image.jpg`],
       site: "@penasakti",
     },
     robots: {

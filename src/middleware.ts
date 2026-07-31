@@ -45,6 +45,10 @@ function getRateLimitBucket(req: NextRequest): { key: string; limit: number } {
   if (path.startsWith("/api/auth/") || path.startsWith("/login") || path.startsWith("/register")) {
     return { key: "auth", limit: RATE_LIMIT_MAX.auth };
   }
+  // OG image generation — tinggi limit karena dipanggil crawler WhatsApp/Telegram/Facebook
+  if (path.startsWith("/api/og")) {
+    return { key: "default", limit: 500 };
+  }
   if (path.startsWith("/api/comments")) {
     return { key: "comments", limit: RATE_LIMIT_MAX.comments };
   }
