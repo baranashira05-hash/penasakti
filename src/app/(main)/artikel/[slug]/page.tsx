@@ -42,7 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       where: { slug },
       select: {
         title: true, excerpt: true, metaTitle: true, metaDesc: true,
-        ogImage: true, featuredImage: true, publishedAt: true, updatedAt: true,
+        ogImage: true, featuredImage: true, content: true,
+        publishedAt: true, updatedAt: true,
         author: { select: { name: true } },
         category: { select: { name: true } },
         tags: { select: { tag: { select: { name: true } } } },
@@ -55,13 +56,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const description = article.metaDesc || article.excerpt || "";
     const keywords = article.tags.map(t => t.tag.name);
 
-    // Prioritas: ogImage (field SEO khusus) → featuredImage
-    // Jadikan absolute jika URL relatif
-    const rawImage = article.ogImage || article.featuredImage;
+    // Prioritas gambar untuk og:image:
+    // 1. ogImage (field SEO khusus) — tapi HANYA jika valid (bukan wp-content)
+    // 2. featuredImage — gambar utama artikel
+    // 3. Extract gambar pertama dari konten HTML
+    // 4. Fallback: /api/og (generated dengan judul + kategori)
+    const pickImage = (url: string | null): string | null => {
+      if (!url) return null;
+      // Reject URL wp-content (server sudah mati)
+      if (url.includes("wp-content/") || url.includes("cdn.penasakti.com")) return null;
+      return url;
+    };
+
+    // Extract gambar pertama dari konten sebagai last resort
+    const extractFromContent = (html: string): string | null => {
+      if (!html) return null;
+      const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (!match) return null;
+      const src = match[1];
+      if (src.includes("wp-content/") || !src.startsWith("https://")) return null;
+      return src;
+    };
+
+    const rawImage =
+      pickImage(article.ogImage) ||
+      pickImage(article.featuredImage) ||
+      extractFromContent(article.content || "");
+
     const directImage = rawImage
-      ? rawImage.startsWith("/")
-        ? `${BASE_URL}${rawImage}`
-        : rawImage
+      ? rawImage.startsWith("/") ? `${BASE_URL}${rawImage}` : rawImage
       : null;
 
     // toOgImageUrl: gambar dari domain aman (cloudinary, vercel blob) dipakai langsung.
