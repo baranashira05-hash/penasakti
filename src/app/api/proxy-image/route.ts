@@ -4,12 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 const ALLOWED_DOMAINS = [
   "i.postimg.cc",
   "postimg.cc",
-  "cdn.penasakti.com",
+  "cdn.penasakti.com",      // Server WordPress lama (Jagoan Hosting)
   "penasakti.com",
   "www.penasakti.com",
   "res.cloudinary.com",
   "images.unsplash.com",
   "i.imgur.com",
+  "imgur.com",
 ];
 
 // Subdomain CDN lama (HTTP only)

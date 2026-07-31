@@ -23,11 +23,11 @@ export const BASE_URL = SITE_URL;
  *
  * Mengapa perlu proxy:
  * - postimg.cc, imgur.cc, dll memblokir hotlinking dari bot/crawler
- * - WhatsApp, Facebook, Telegram adalah bot — mereka di-block → gambar tidak muncul
- * - Dengan proxy via domain sendiri (www.penasakti.com), crawler selalu bisa akses
+ * - penasakti.com/wp-content/uploads/ mengarah ke server WordPress lama yang sudah mati
+ * - WhatsApp, Facebook, Telegram adalah bot — gambar tidak bisa diakses → tidak muncul
+ * - Dengan proxy via www.penasakti.com, crawler selalu bisa akses
  *
- * URL yang sudah dari domain terpercaya (vercel blob, cloudinary) tidak di-proxy
- * karena mereka memang sudah public dan bebas diakses crawler.
+ * URL yang tidak perlu di-proxy: Vercel Blob, Cloudinary (selalu public & crawler-friendly)
  */
 export function toOgImageUrl(rawUrl: string | null | undefined): string | null {
   if (!rawUrl) return null;
@@ -35,30 +35,51 @@ export function toOgImageUrl(rawUrl: string | null | undefined): string | null {
   // URL relatif → absolute
   const url = rawUrl.startsWith("/") ? `${SITE_URL}${rawUrl}` : rawUrl;
 
-  // Domain yang TIDAK perlu di-proxy (sudah crawler-friendly)
+  // Domain yang TIDAK perlu di-proxy (selalu public, crawler-friendly)
   const SAFE_DOMAINS = [
-    "vercel-storage.com",    // Vercel Blob
+    "vercel-storage.com",         // Vercel Blob
     "blob.vercel-storage.com",
-    "res.cloudinary.com",    // Cloudinary
+    "res.cloudinary.com",         // Cloudinary
     "cloudinary.com",
-    "penasakti.com",         // Domain sendiri
-    "www.penasakti.com",
   ];
 
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
+    const pathname = parsed.pathname;
 
-    // Sudah aman, tidak perlu proxy
+    // URL dari penasakti.com/wp-content/ → server WordPress lama (mati)
+    // Harus di-proxy agar bisa diakses, server lama masih hidup via cdn.penasakti.com
+    const isWpContent = pathname.startsWith("/wp-content/");
+    if (isWpContent) {
+      // Ubah ke cdn.penasakti.com (HTTP, server Jagoan Hosting lama masih hidup)
+      // lalu proxy via endpoint kita supaya jadi HTTPS
+      const cdnUrl = `http://cdn.penasakti.com${pathname}`;
+      return `${SITE_URL}/api/proxy-image?url=${encodeURIComponent(cdnUrl)}`;
+    }
+
+    // Vercel Blob & Cloudinary → aman, tidak perlu proxy
     const isSafe = SAFE_DOMAINS.some(
       (d) => hostname === d || hostname.endsWith(`.${d}`)
     );
     if (isSafe) {
-      // Pastikan HTTPS
       return url.replace(/^http:\/\//, "https://");
     }
 
-    // Domain eksternal (postimg.cc, imgur, dll) → route via proxy
+    // Domain penasakti.com sendiri (bukan wp-content) → aman, pastikan HTTPS www
+    if (hostname === "penasakti.com" || hostname === "www.penasakti.com") {
+      return url
+        .replace("https://penasakti.com", "https://www.penasakti.com")
+        .replace("http://penasakti.com", "https://www.penasakti.com")
+        .replace("http://www.penasakti.com", "https://www.penasakti.com");
+    }
+
+    // cdn.penasakti.com (HTTP CDN lama) → proxy agar jadi HTTPS
+    if (hostname === "cdn.penasakti.com") {
+      return `${SITE_URL}/api/proxy-image?url=${encodeURIComponent(url)}`;
+    }
+
+    // Domain eksternal lainnya (postimg.cc, imgur, dll) → proxy
     return `${SITE_URL}/api/proxy-image?url=${encodeURIComponent(url)}`;
   } catch {
     return null;
