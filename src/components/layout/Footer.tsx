@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Rss, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { CATEGORIES } from "@/lib/utils";
 
 export default function Footer() {
@@ -71,7 +71,6 @@ export default function Footer() {
                     </svg>
                   ),
                 },
-                { href: "/rss.xml", label: "RSS", icon: Rss },
               ].map(({ href, label, svg, icon: Icon }) => (
                 <a
                   key={label}
