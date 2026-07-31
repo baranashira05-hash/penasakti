@@ -41,7 +41,10 @@ export const metadata: Metadata = {
   authors: [{ name: "Redaksi PenaSakti", url: APP_URL }],
   creator: "PenaSakti",
   publisher: "PenaSakti",
-  robots: {
+  verification: {
+      google: "KmEDoRWCc4pWbSl_-rfKwgS5vMmV4n93dU3v6YO8Af0",
+    },
+    robots: {
     index: true,
     follow: true,
     googleBot: {
