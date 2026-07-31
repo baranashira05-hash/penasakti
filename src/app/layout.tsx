@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/shared/AuthProvider";
 import { QueryProvider } from "@/components/shared/QueryProvider";
 import { Toaster } from "sonner";
 import { SITE_URL } from "@/lib/site-url";
+import SocialSidebar from "@/components/shared/SocialSidebar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -195,6 +196,7 @@ export default function RootLayout({
               disableTransitionOnChange={false}
             >
               {children}
+              <SocialSidebar />
               <Toaster
                 position="top-right"
                 toastOptions={{
