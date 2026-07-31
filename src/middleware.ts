@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { cache } from "@/lib/redis";
 
 // Domain canonical — redirect 301 jika diakses via domain lain (vercel.app, dll)
-const CANONICAL_HOST = "penasakti.com";
+// www.penasakti.com adalah primary domain di Vercel
+// penasakti.com (non-www) di-redirect ke www oleh Vercel sebelum middleware berjalan
+const CANONICAL_HOST = "www.penasakti.com";
 
 const BLOCKED_PATHS = ["/.env", "/.git", "/wp-admin", "/phpmyadmin", "/.env.local", "/server-status"];
 const BLOCKED_UA_PATTERNS = [
