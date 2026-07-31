@@ -129,7 +129,7 @@ export default async function TagPage({ params, searchParams }: Props) {
         }));
 
   const totalPages = meta?.totalPages || 1;
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const BASE_URL = SITE_URL;
   const tagUrl = `${BASE_URL}/tag/${slug}`;
 
   // JSON-LD CollectionPage untuk halaman tag

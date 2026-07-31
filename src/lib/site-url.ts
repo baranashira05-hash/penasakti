@@ -48,14 +48,14 @@ export function toOgImageUrl(rawUrl: string | null | undefined): string | null {
     const hostname = parsed.hostname.toLowerCase();
     const pathname = parsed.pathname;
 
-    // URL dari penasakti.com/wp-content/ → server WordPress lama (mati)
-    // Harus di-proxy agar bisa diakses, server lama masih hidup via cdn.penasakti.com
+    // URL dari penasakti.com/wp-content/ atau cdn.penasakti.com/wp-content/
+    // → server WordPress lama. Cek dulu apakah cdn masih hidup.
+    // cdn.penasakti.com sudah mati → kembalikan null agar caller pakai fallback /api/og
     const isWpContent = pathname.startsWith("/wp-content/");
     if (isWpContent) {
-      // Ubah ke cdn.penasakti.com (HTTP, server Jagoan Hosting lama masih hidup)
-      // lalu proxy via endpoint kita supaya jadi HTTPS
-      const cdnUrl = `http://cdn.penasakti.com${pathname}`;
-      return `${SITE_URL}/api/proxy-image?url=${encodeURIComponent(cdnUrl)}`;
+      // Server WordPress lama sudah tidak bisa diakses sama sekali
+      // Kembalikan null → caller akan pakai /api/og sebagai fallback
+      return null;
     }
 
     // Vercel Blob & Cloudinary → aman, tidak perlu proxy
@@ -74,9 +74,9 @@ export function toOgImageUrl(rawUrl: string | null | undefined): string | null {
         .replace("http://www.penasakti.com", "https://www.penasakti.com");
     }
 
-    // cdn.penasakti.com (HTTP CDN lama) → proxy agar jadi HTTPS
+    // cdn.penasakti.com (HTTP CDN lama) → server sudah mati, kembalikan null
     if (hostname === "cdn.penasakti.com") {
-      return `${SITE_URL}/api/proxy-image?url=${encodeURIComponent(url)}`;
+      return null;
     }
 
     // Domain eksternal lainnya (postimg.cc, imgur, dll) → proxy

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { SITE_URL } from "@/lib/site-url";
 
 /**
  * GET /api/newsletter/unsubscribe?token=xxx
@@ -8,7 +9,7 @@ import prisma from "@/lib/prisma";
  * Menghapus subscriber dari DB dan redirect ke halaman konfirmasi.
  */
 export async function GET(request: NextRequest) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const baseUrl = SITE_URL;
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token");
 

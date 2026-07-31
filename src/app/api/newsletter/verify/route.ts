@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { sendNewsletterWelcome } from "@/lib/email";
+import { SITE_URL } from "@/lib/site-url";
 
 /**
  * GET /api/newsletter/verify?token=xxx
@@ -9,7 +10,7 @@ import { sendNewsletterWelcome } from "@/lib/email";
  * Menandai subscriber sebagai terverifikasi dan redirect ke halaman sukses.
  */
 export async function GET(request: NextRequest) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const baseUrl = SITE_URL;
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token");
 

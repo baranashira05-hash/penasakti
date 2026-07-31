@@ -10,6 +10,7 @@
  */
 
 import nodemailer from "nodemailer";
+import { SITE_URL } from "@/lib/site-url";
 
 // ─────────────────────────────────────────────────────────────
 // Transporter — singleton agar koneksi SMTP tidak dibuat ulang
@@ -50,8 +51,7 @@ export async function sendNewsletterVerification(
   email: string,
   token: string
 ): Promise<void> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const baseUrl = SITE_URL;
   const verifyUrl = `${baseUrl}/api/newsletter/verify?token=${token}`;
   const unsubUrl = `${baseUrl}/api/newsletter/unsubscribe?token=${token}`;
 
@@ -160,8 +160,7 @@ penasakti.com
 // Kirim email selamat datang setelah verifikasi berhasil
 // ─────────────────────────────────────────────────────────────
 export async function sendNewsletterWelcome(email: string): Promise<void> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const baseUrl = SITE_URL;
 
   await getTransporter().sendMail({
     from: FROM,

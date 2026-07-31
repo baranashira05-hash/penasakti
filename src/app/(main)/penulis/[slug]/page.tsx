@@ -14,6 +14,7 @@ import ArticleCard from "@/components/article/ArticleCard";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
 import { formatDate, formatNumber } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site-url";
 import type { ArticleWithRelations } from "@/types";
 
 interface AuthorProfile {
@@ -100,7 +101,7 @@ async function getAuthorArticles(slug: string, page: number) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const BASE_URL = SITE_URL;
   const author = await getAuthorData(slug);
   const displayName =
     author?.displayName ||
@@ -198,7 +199,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
   const displayArticles: ArticleWithRelations[] =
     articles.length > 0 ? articles : generateDemoArticles(slug);
 
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const BASE_URL = SITE_URL;
   const authorUrl = `${BASE_URL}/penulis/${slug}`;
 
   // JSON-LD Person schema

@@ -10,13 +10,12 @@
 
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+import { SITE_URL } from "@/lib/site-url";
 
 export const runtime = "edge";
 
 // Cache OG image 24 jam di CDN
 export const revalidate = 86400;
-
-const SITE_URL = "https://www.penasakti.com";
 
 /**
  * Normalise image URL sebelum dipakai sebagai background OG:
@@ -26,16 +25,19 @@ const SITE_URL = "https://www.penasakti.com";
  */
 function normaliseImageUrl(url: string): string {
   if (!url) return url;
-  // Ganti cdn subdomain (HTTP) ke domain utama HTTPS
+  // cdn.penasakti.com (HTTP, server WordPress lama) → www HTTPS
   if (url.startsWith("http://cdn.penasakti.com")) {
-    return url.replace("http://cdn.penasakti.com", "https://penasakti.com");
+    return url.replace("http://cdn.penasakti.com", "https://www.penasakti.com");
   }
-  // Pastikan selalu HTTPS
+  // Pastikan selalu HTTPS www
   if (url.startsWith("http://www.penasakti.com")) {
     return url.replace("http://www.penasakti.com", "https://www.penasakti.com");
   }
   if (url.startsWith("http://penasakti.com")) {
-    return url.replace("http://penasakti.com", "https://penasakti.com");
+    return url.replace("http://penasakti.com", "https://www.penasakti.com");
+  }
+  if (url.startsWith("https://penasakti.com")) {
+    return url.replace("https://penasakti.com", "https://www.penasakti.com");
   }
   return url;
 }
