@@ -28,8 +28,17 @@ export default function HomeClient({ initialArticles = [], initialTrending = [] 
       <AdBanner position="HEADER" className="my-2" />
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2"><BreakingSection articles={articles.slice(0, 4)} /></div>
-          <div><TrendingSection articles={initialTrending.length > 0 ? initialTrending : articles.slice(0, 10)} /></div>
+          {/* Kolom kiri: Berita Terkini + Trending dengan gambar */}
+          <div className="lg:col-span-2">
+            <BreakingSection
+              articles={articles.slice(0, 4)}
+              trendingArticles={initialTrending.length > 0 ? initialTrending : articles.slice(0, 5)}
+            />
+          </div>
+          {/* Kolom kanan: Trending list ringkas #6-10 */}
+          <div>
+            <TrendingSection articles={initialTrending.length > 0 ? initialTrending.slice(5, 15) : articles.slice(5, 15)} />
+          </div>
         </div>
       </div>
 
