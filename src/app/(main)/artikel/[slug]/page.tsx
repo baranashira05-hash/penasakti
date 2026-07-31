@@ -53,11 +53,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = article.metaTitle || article.title;
     const description = article.metaDesc || article.excerpt || "";
-    const image = article.ogImage || article.featuredImage;
     const keywords = article.tags.map(t => t.tag.name);
 
-    // Buat URL untuk dynamic OG image agar gambar selalu muncul di WhatsApp/Telegram/Facebook
-    // Params di-encode agar aman sebagai query string
+    // Prioritas: ogImage (field SEO khusus) → featuredImage
+    // Jika URL relatif (mulai /), jadikan absolute dengan BASE_URL
+    const rawImage = article.ogImage || article.featuredImage;
+    const image = rawImage
+      ? rawImage.startsWith("/")
+        ? `${BASE_URL}${rawImage}`
+        : rawImage
+      : null;
+
+    // Bangun URL dynamic OG image via /api/og agar:
+    // 1. Selalu HTTPS — crawler tidak diblokir mixed content
+    // 2. Gambar di-render server-side, pasti muncul di WhatsApp/FB/Telegram
     const ogParams = new URLSearchParams({
       title: title.slice(0, 100),
       category: article.category?.name || "Berita",
@@ -75,6 +84,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title,
         description,
+        url: `${BASE_URL}/artikel/${slug}`,
         images: [
           {
             url: ogImageUrl,

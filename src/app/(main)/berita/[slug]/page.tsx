@@ -7,6 +7,7 @@ import { getPostBySlug, getFeaturedImage, getAuthor, cleanContent, getYoastMeta 
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
 import { getImageUrl } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site-url";
 
 // ISR: revalidate setiap 10 menit agar berita WordPress selalu fresh
 export const revalidate = 600;
@@ -18,7 +19,8 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  // Selalu gunakan SITE_URL (www) agar tidak kena redirect 308 saat crawler fetch
+  const APP_URL = SITE_URL;
 
   try {
     const post = await getPostBySlug(slug);
@@ -26,7 +28,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const meta = getYoastMeta(post);
     const featuredImage = getFeaturedImage(post);
-    const imageUrl = meta.ogImage || (featuredImage ? getImageUrl(featuredImage) : null);
+
+    // Ambil URL gambar asli (masih bisa http://cdn.penasakti.com)
+    const rawImageUrl = meta.ogImage || (featuredImage ? getImageUrl(featuredImage) : null);
+
+    // Bangun URL dynamic OG image via /api/og agar:
+    // 1. Selalu HTTPS (tidak ada masalah mixed content di crawler)
+    // 2. Gambar di-render server-side, pasti muncul di WhatsApp/FB/Telegram
+    // 3. Fallback ke gradient jika gambar asli tidak ada
+    const ogParams = new URLSearchParams({
+      title: meta.metaTitle.slice(0, 100),
+      category: "Berita",
+      author: "Redaksi PenaSakti",
+      ...(meta.metaDesc && { excerpt: meta.metaDesc.slice(0, 130) }),
+      ...(rawImageUrl && { image: rawImageUrl }),
+    });
+    const ogImageUrl = `${APP_URL}/api/og?${ogParams.toString()}`;
 
     return {
       title: meta.metaTitle,
@@ -37,7 +54,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title: meta.metaTitle,
         description: meta.metaDesc,
-        images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: meta.metaTitle }] : [],
+        url: `${APP_URL}/berita/${slug}`,
+        images: [{ url: ogImageUrl, width: 1200, height: 630, alt: meta.metaTitle }],
         type: "article",
         publishedTime: post.date,
         modifiedTime: post.modified,
@@ -48,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: "summary_large_image",
         title: meta.metaTitle,
         description: meta.metaDesc,
-        images: imageUrl ? [imageUrl] : [],
+        images: [ogImageUrl],
         site: "@penasakti",
       },
       robots: {
@@ -66,7 +84,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BeritaPage({ params }: Props) {
   const { slug } = await params;
 
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  // Gunakan SITE_URL (www) untuk konsistensi canonical & JSON-LD
+  const APP_URL = SITE_URL;
 
   let post;
   try {

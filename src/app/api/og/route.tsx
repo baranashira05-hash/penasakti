@@ -16,7 +16,29 @@ export const runtime = "edge";
 // Cache OG image 24 jam di CDN
 export const revalidate = 86400;
 
-const SITE_URL = "https://penasakti.com";
+const SITE_URL = "https://www.penasakti.com";
+
+/**
+ * Normalise image URL sebelum dipakai sebagai background OG:
+ * - http://cdn.penasakti.com/wp-content/... → https://penasakti.com/wp-content/...
+ *   (cdn.penasakti.com hanya HTTP dan sering diblokir edge runtime)
+ * - URL lain dibiarkan apa adanya
+ */
+function normaliseImageUrl(url: string): string {
+  if (!url) return url;
+  // Ganti cdn subdomain (HTTP) ke domain utama HTTPS
+  if (url.startsWith("http://cdn.penasakti.com")) {
+    return url.replace("http://cdn.penasakti.com", "https://penasakti.com");
+  }
+  // Pastikan selalu HTTPS
+  if (url.startsWith("http://www.penasakti.com")) {
+    return url.replace("http://www.penasakti.com", "https://www.penasakti.com");
+  }
+  if (url.startsWith("http://penasakti.com")) {
+    return url.replace("http://penasakti.com", "https://penasakti.com");
+  }
+  return url;
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -24,7 +46,8 @@ export async function GET(req: NextRequest) {
   const title    = searchParams.get("title")    || "PenaSakti - Portal Berita Nasional";
   const category = searchParams.get("category") || "Berita";
   const author   = searchParams.get("author")   || "Redaksi PenaSakti";
-  const imageUrl = searchParams.get("image")    || "";
+  const rawImage = searchParams.get("image")    || "";
+  const imageUrl = normaliseImageUrl(rawImage);
   const excerpt  = searchParams.get("excerpt")  || "";
 
   // Truncate panjang teks agar tidak overflow
