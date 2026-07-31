@@ -12,7 +12,7 @@ import ArticleShare from "@/components/article/ArticleShare";
 // Crawler Google akan tetap bisa mengindeks karena ISR diaktifkan di bawah
 export const revalidate = 300; // revalidate setiap 5 menit
 
-import { SITE_URL } from "@/lib/site-url";
+import { SITE_URL, toOgImageUrl } from "@/lib/site-url";
 const BASE_URL = SITE_URL;
 
 interface Props {
@@ -64,12 +64,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         : rawImage
       : null;
 
-    // Gunakan gambar artikel asli sebagai og:image agar ukuran file cukup besar
-    // (WhatsApp/Telegram membutuhkan gambar min ~200KB untuk menampilkan thumbnail)
-    // Fallback ke /api/og hanya jika tidak ada gambar sama sekali
-    const ogImageUrl = directImage
-      ? directImage
-      : `${BASE_URL}/api/og?title=${encodeURIComponent(title.slice(0, 100))}&category=${encodeURIComponent(article.category?.name || "Berita")}&author=${encodeURIComponent(article.author?.name || "Redaksi PenaSakti")}`;
+    // toOgImageUrl: gambar dari domain aman (cloudinary, vercel blob) dipakai langsung.
+    // Gambar dari domain eksternal (postimg.cc, dll) di-proxy via /api/proxy-image
+    // agar crawler WhatsApp/FB/Telegram bisa mengaksesnya.
+    const ogImageUrl = toOgImageUrl(directImage)
+      ?? `${BASE_URL}/api/og?title=${encodeURIComponent(title.slice(0, 100))}&category=${encodeURIComponent(article.category?.name || "Berita")}&author=${encodeURIComponent(article.author?.name || "Redaksi PenaSakti")}`;
 
     return {
       title,

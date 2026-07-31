@@ -7,7 +7,7 @@ import { getPostBySlug, getFeaturedImage, getAuthor, cleanContent, getYoastMeta 
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
 import { getImageUrl } from "@/lib/utils";
-import { SITE_URL } from "@/lib/site-url";
+import { SITE_URL, toOgImageUrl } from "@/lib/site-url";
 
 // ISR: revalidate setiap 10 menit agar berita WordPress selalu fresh
 export const revalidate = 600;
@@ -29,28 +29,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const meta = getYoastMeta(post);
     const featuredImage = getFeaturedImage(post);
 
-    // Ambil URL gambar asli
-    // getImageUrl() mengkonversi https://penasakti.com/wp-content → http://cdn.penasakti.com
-    // Kita gunakan URL HTTPS langsung (penasakti.com) agar bisa diakses crawler
+    // Ambil URL gambar asli (bisa http://cdn.penasakti.com atau https://penasakti.com)
     const rawImageUrl = meta.ogImage || featuredImage || null;
-    
-    // Normalise: pastikan selalu HTTPS, tidak ada cdn subdomain HTTP
-    function toHttps(url: string | null): string | null {
-      if (!url) return null;
-      return url
-        .replace("http://cdn.penasakti.com", "https://penasakti.com")
-        .replace("http://www.penasakti.com", "https://www.penasakti.com")
-        .replace("http://penasakti.com", "https://penasakti.com");
-    }
-    
-    const directImageUrl = toHttps(rawImageUrl);
 
-    // Gunakan gambar artikel asli sebagai og:image agar ukuran cukup besar
-    // (WhatsApp/Telegram butuh min ~200KB untuk thumbnail besar)
-    // Fallback ke /api/og hanya jika tidak ada gambar sama sekali
-    const ogImageUrl = directImageUrl
-      ? directImageUrl
-      : `${APP_URL}/api/og?title=${encodeURIComponent(meta.metaTitle.slice(0, 100))}&category=Berita&author=${encodeURIComponent("Redaksi PenaSakti")}`;
+    // toOgImageUrl: gambar dari domain aman dipakai langsung (HTTPS).
+    // Gambar dari domain eksternal / HTTP di-proxy via /api/proxy-image
+    // agar crawler WhatsApp/FB/Telegram bisa mengaksesnya.
+    const ogImageUrl = toOgImageUrl(rawImageUrl)
+      ?? `${APP_URL}/api/og?title=${encodeURIComponent(meta.metaTitle.slice(0, 100))}&category=Berita&author=${encodeURIComponent("Redaksi PenaSakti")}`;
 
     return {
       title: meta.metaTitle,
