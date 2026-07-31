@@ -8,8 +8,10 @@
  */
 
 import { NextResponse } from "next/server";
+import { SITE_URL } from "@/lib/site-url";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+// Selalu hard-coded canonical — tidak boleh pakai env var di sini
+const CANONICAL_URL = SITE_URL;
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +21,11 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>${BASE_URL}/sitemap.xml</loc>
+    <loc>${CANONICAL_URL}/sitemap.xml</loc>
     <lastmod>${now}</lastmod>
   </sitemap>
   <sitemap>
-    <loc>${BASE_URL}/news-sitemap.xml</loc>
+    <loc>${CANONICAL_URL}/news-sitemap.xml</loc>
     <lastmod>${now}</lastmod>
   </sitemap>
 </sitemapindex>`;

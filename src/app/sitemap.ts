@@ -1,7 +1,9 @@
 import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
+import { SITE_URL } from "@/lib/site-url";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+// Selalu hard-coded canonical — tidak boleh pakai env var di sini
+const BASE_URL = SITE_URL;
 
 // Sitemap di-generate secara dynamic dan di-cache 1 jam
 export const dynamic = "force-dynamic";

@@ -1,22 +1,38 @@
 {
   "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "penasakti.vercel.app"
+        }
+      ],
+      "destination": "https://penasakti.com/$1",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/sitemap.xml",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=3600, stale-while-revalidate=86400" }
+        { "key": "Cache-Control", "value": "public, s-maxage=3600, stale-while-revalidate=86400" },
+        { "key": "X-Robots-Tag", "value": "noindex" }
       ]
     },
     {
       "source": "/news-sitemap.xml",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=300, stale-while-revalidate=600" }
+        { "key": "Cache-Control", "value": "public, s-maxage=300, stale-while-revalidate=600" },
+        { "key": "X-Robots-Tag", "value": "noindex" }
       ]
     },
     {
       "source": "/sitemap-index.xml",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=3600, stale-while-revalidate=86400" }
+        { "key": "Cache-Control", "value": "public, s-maxage=3600, stale-while-revalidate=86400" },
+        { "key": "X-Robots-Tag", "value": "noindex" }
       ]
     },
     {

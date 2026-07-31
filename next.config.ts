@@ -102,9 +102,9 @@ const nextConfig: NextConfig = {
         },
       ],
     },
-    // No cache untuk API
+    // No cache untuk API — kecuali route sitemap SEO yang di-rewrite dari URL publik
     {
-      source: "/api/(.*)",
+      source: "/api/(?!seo/)(.*)",
       headers: [
         { key: "Cache-Control", value: "no-store, must-revalidate" },
       ],

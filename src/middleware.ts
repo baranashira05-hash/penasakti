@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cache } from "@/lib/redis";
 
+// Domain canonical — redirect 301 jika diakses via domain lain (vercel.app, dll)
+const CANONICAL_HOST = "penasakti.com";
+
 const BLOCKED_PATHS = ["/.env", "/.git", "/wp-admin", "/phpmyadmin", "/.env.local", "/server-status"];
 const BLOCKED_UA_PATTERNS = [
   /sqlmap/i,
@@ -116,6 +119,30 @@ function applySecurityHeaders(res: NextResponse, pathname: string): NextResponse
 
 export function middleware(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
+  const host = req.headers.get("host") || "";
+
+  // ── Canonical domain redirect ──────────────────────────────────────────
+  // Jika diakses via vercel.app atau domain lain, redirect 301 ke penasakti.com
+  // Ini KRUSIAL agar Google tidak mengindeks vercel.app
+  if (
+    host &&
+    !host.includes(CANONICAL_HOST) &&
+    !host.includes("localhost") &&
+    process.env.NODE_ENV === "production"
+  ) {
+    const url = req.nextUrl.clone();
+    url.host = CANONICAL_HOST;
+    url.protocol = "https:";
+    url.port = "";
+    return NextResponse.redirect(url, {
+      status: 301,
+      headers: {
+        // Pastikan search engine menyimpan redirect ini lama
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
+  }
+  // ──────────────────────────────────────────────────────────────────────
 
   if (BLOCKED_PATHS.some((p) => pathname.includes(p))) {
     return new NextResponse("Forbidden", { status: 403 });

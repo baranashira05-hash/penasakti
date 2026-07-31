@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { AuthProvider } from "@/components/shared/AuthProvider";
 import { QueryProvider } from "@/components/shared/QueryProvider";
 import { Toaster } from "sonner";
+import { SITE_URL } from "@/lib/site-url";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,7 +21,8 @@ const merriweather = Merriweather({
 });
 
 const APP_NAME = "PenaSakti";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+// Hard-coded canonical — SELALU penasakti.com, jangan pakai env var
+const APP_URL = SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
