@@ -19,7 +19,7 @@ interface Ad {
 
 const POSITIONS = [
   { value: "HEADER", label: "Header (728×90)" },
-  { value: "SIDEBAR", label: "Sidebar (300×250)" },
+  { value: "SIDEBAR", label: "Sidebar / Bawah Trending (300×250)" },
   { value: "IN_ARTICLE", label: "Dalam Artikel (468×60)" },
   { value: "FOOTER", label: "Footer (970×90)" },
   { value: "STICKY_BOTTOM", label: "Sticky Bottom (320×50)" },

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 interface AdBannerProps {
-  position: "HEADER" | "SIDEBAR" | "IN_ARTICLE" | "FOOTER" | "STICKY_BOTTOM";
+  position: "HEADER" | "SIDEBAR" | "IN_ARTICLE" | "FOOTER" | "STICKY_BOTTOM" | "POPUP";
   className?: string;
 }
 
@@ -14,6 +14,7 @@ const SIZE_MAP = {
   IN_ARTICLE: { label: "In-Article", size: "468×60", h: "h-[60px]", w: "max-w-[468px]" },
   FOOTER: { label: "Leaderboard", size: "970×90", h: "h-[90px]", w: "max-w-[970px]" },
   STICKY_BOTTOM: { label: "Mobile Banner", size: "320×50", h: "h-[50px]", w: "max-w-[728px]" },
+  POPUP: { label: "Popup", size: "300×250", h: "h-[250px]", w: "max-w-[300px]" },
 };
 
 export default function AdBanner({ position, className }: AdBannerProps) {
