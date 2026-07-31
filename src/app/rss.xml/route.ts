@@ -69,17 +69,24 @@ export async function GET() {
 
   const rssItems = articles
     .map(
-      (a) => `
+      (a) => {
+        const articleUrl = `${APP_URL}/artikel/${a.slug}`;
+        // Pastikan image URL adalah absolut dan valid
+        const imageUrl = a.image && a.image.startsWith("http") ? a.image : null;
+
+        return `
     <item>
       <title><![CDATA[${a.title}]]></title>
-      <link>${APP_URL}/artikel/${a.slug}</link>
-      <guid isPermaLink="true">${APP_URL}/artikel/${a.slug}</guid>
+      <link>${articleUrl}</link>
+      <guid isPermaLink="true">${articleUrl}</guid>
       <description><![CDATA[${a.excerpt}]]></description>
       <category><![CDATA[${a.category}]]></category>
       <dc:creator><![CDATA[${a.author}]]></dc:creator>
       <pubDate>${a.date}</pubDate>
-      ${a.image ? `<media:content url="${a.image}" width="1200" height="630" medium="image" xmlns:media="http://search.yahoo.com/mrss/"/>` : ""}
-    </item>`
+      ${imageUrl ? `<media:content url="${imageUrl}" width="1200" height="630" medium="image" xmlns:media="http://search.yahoo.com/mrss/"/>
+      <media:thumbnail url="${imageUrl}" xmlns:media="http://search.yahoo.com/mrss/"/>` : ""}
+    </item>`;
+      }
     )
     .join("\n");
 
@@ -102,13 +109,14 @@ export async function GET() {
     <managingEditor>redaksi@penasakti.com (Redaksi PenaSakti)</managingEditor>
     <webMaster>tech@penasakti.com (Tim Teknis PenaSakti)</webMaster>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <ttl>15</ttl>
     <atom:link href="${APP_URL}/rss.xml" rel="self" type="application/rss+xml"/>
     <image>
-      <url>${APP_URL}/og-image.jpg</url>
+      <url>${APP_URL}/logo-penasakti.png</url>
       <title>PenaSakti</title>
       <link>${APP_URL}</link>
-      <width>1200</width>
-      <height>630</height>
+      <width>200</width>
+      <height>60</height>
     </image>
 ${rssItems}
   </channel>

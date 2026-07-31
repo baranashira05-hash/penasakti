@@ -8,7 +8,8 @@ import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
 import { getImageUrl } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
+// ISR: revalidate setiap 10 menit agar berita WordPress selalu fresh
+export const revalidate = 600;
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -17,22 +18,45 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+
   try {
     const post = await getPostBySlug(slug);
     if (!post) return { title: "Artikel Tidak Ditemukan" };
 
     const meta = getYoastMeta(post);
+    const featuredImage = getFeaturedImage(post);
+    const imageUrl = meta.ogImage || (featuredImage ? getImageUrl(featuredImage) : null);
+
     return {
       title: meta.metaTitle,
       description: meta.metaDesc,
+      alternates: {
+        canonical: meta.canonical || `${APP_URL}/berita/${slug}`,
+      },
       openGraph: {
         title: meta.metaTitle,
         description: meta.metaDesc,
-        images: meta.ogImage ? [{ url: meta.ogImage }] : [],
+        images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: meta.metaTitle }] : [],
         type: "article",
         publishedTime: post.date,
+        modifiedTime: post.modified,
+        siteName: "PenaSakti",
+        locale: "id_ID",
       },
-      alternates: { canonical: meta.canonical || `/berita/${slug}` },
+      twitter: {
+        card: "summary_large_image",
+        title: meta.metaTitle,
+        description: meta.metaDesc,
+        images: imageUrl ? [imageUrl] : [],
+        site: "@penasakti",
+      },
+      robots: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     };
   } catch {
     return { title: "Artikel" };
@@ -41,6 +65,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BeritaPage({ params }: Props) {
   const { slug } = await params;
+
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
 
   let post;
   try {
@@ -56,14 +82,58 @@ export default async function BeritaPage({ params }: Props) {
   const author = getAuthor(post);
   const content = cleanContent(post.content.rendered);
   const meta = getYoastMeta(post);
+  const articleUrl = `${APP_URL}/berita/${slug}`;
+  const imageUrl = meta.ogImage || (featuredImage ? getImageUrl(featuredImage) : null);
+
+  // JSON-LD NewsArticle
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": post.title.rendered.replace(/<[^>]+>/g, ""),
+    "description": meta.metaDesc || post.excerpt.rendered.replace(/<[^>]+>/g, "").trim(),
+    "url": articleUrl,
+    "mainEntityOfPage": { "@type": "WebPage", "@id": articleUrl },
+    "datePublished": post.date,
+    "dateModified": post.modified || post.date,
+    "author": {
+      "@type": "Person",
+      "name": author?.name || "Redaksi PenaSakti",
+    },
+    "publisher": {
+      "@type": "NewsMediaOrganization",
+      "name": "PenaSakti",
+      "url": APP_URL,
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${APP_URL}/logo-penasakti.png`,
+        "width": 200,
+        "height": 60,
+      },
+    },
+    ...(imageUrl && {
+      "image": {
+        "@type": "ImageObject",
+        "url": imageUrl,
+        "width": 1200,
+        "height": 630,
+      },
+    }),
+    "inLanguage": "id-ID",
+    "isAccessibleForFree": true,
+  };
 
   return (
     <div className="container mx-auto px-4 py-6">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Breadcrumb
         items={[
           { label: "Beranda", href: "/" },
           { label: "Berita", href: "#" },
-          { label: post.title.rendered.substring(0, 50) + "..." },
+          { label: post.title.rendered.replace(/<[^>]+>/g, "").substring(0, 50) + "..." },
         ]}
       />
 

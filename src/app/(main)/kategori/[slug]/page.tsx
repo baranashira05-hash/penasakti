@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ArticleCard from "@/components/article/ArticleCard";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
+import prisma from "@/lib/prisma";
 import { CATEGORIES } from "@/lib/utils";
 import type { ArticleWithRelations } from "@/types";
 
@@ -11,15 +12,61 @@ interface Props {
   searchParams: Promise<{ page?: string }>;
 }
 
-export const dynamic = "force-dynamic";
+// ISR: revalidate setiap 1 menit untuk kategori
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  // Pre-render semua halaman kategori saat build
+  return CATEGORIES.map((c) => ({ slug: c.slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const cat = CATEGORIES.find((c) => c.slug === slug);
-  if (!cat) return { title: "Kategori Tidak Ditemukan" };
+
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+
+  // Coba ambil dari database dulu
+  let catName = slug.charAt(0).toUpperCase() + slug.slice(1);
+  let catDesc = `Baca berita ${catName} terbaru, terpercaya, dan terupdate hanya di PenaSakti - portal berita nasional Indonesia.`;
+
+  try {
+    const dbCat = await prisma.category.findFirst({ where: { slug } });
+    if (dbCat) {
+      catName = dbCat.name;
+      catDesc = dbCat.metaDesc || dbCat.description || catDesc;
+    } else {
+      const staticCat = CATEGORIES.find((c) => c.slug === slug);
+      if (!staticCat) return { title: "Kategori Tidak Ditemukan" };
+      catName = staticCat.name;
+    }
+  } catch {
+    const staticCat = CATEGORIES.find((c) => c.slug === slug);
+    if (!staticCat) return { title: "Kategori Tidak Ditemukan" };
+    catName = staticCat.name;
+  }
+
   return {
-    title: `Berita ${cat.name} Terkini | PenaSakti`,
-    description: `Baca berita ${cat.name} terbaru dan terpercaya hanya di PenaSakti.`,
+    title: `Berita ${catName} Terkini | PenaSakti`,
+    description: catDesc,
+    alternates: { canonical: `${BASE_URL}/kategori/${slug}` },
+    openGraph: {
+      title: `Berita ${catName} Terkini | PenaSakti`,
+      description: catDesc,
+      type: "website",
+      locale: "id_ID",
+      siteName: "PenaSakti",
+      url: `${BASE_URL}/kategori/${slug}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Berita ${catName} Terkini | PenaSakti`,
+      description: catDesc,
+      site: "@penasakti",
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
@@ -73,33 +120,79 @@ function generateDemoArticles(slug: string): ArticleWithRelations[] {
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const { page: pageStr } = await searchParams;
-  const page = parseInt(pageStr || "1");
-  const cat = CATEGORIES.find((c) => c.slug === slug);
+  const page = Math.max(1, parseInt(pageStr || "1"));
+  const LIMIT = 9;
 
-  if (!cat) notFound();
+  // Cari kategori di database atau fallback ke static
+  let cat: { name: string; slug: string; color: string; description?: string | null } | null = null;
+  try {
+    const dbCat = await prisma.category.findFirst({ where: { slug, isActive: true } });
+    if (dbCat) {
+      cat = { name: dbCat.name, slug: dbCat.slug, color: dbCat.color || "#1a3a6b", description: dbCat.description };
+    }
+  } catch {}
 
-  // Try to fetch from API, fallback to demo
+  if (!cat) {
+    const staticCat = CATEGORIES.find((c) => c.slug === slug);
+    if (!staticCat) notFound();
+    cat = staticCat;
+  }
+
+  // Ambil artikel dari database langsung (lebih cepat dan reliable)
   let articles: ArticleWithRelations[] = [];
   try {
-    const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const res = await fetch(
-      `${base}/api/articles?category=${slug}&status=PUBLISHED&limit=9&page=${page}`,
-      { next: { revalidate: 60 } }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      articles = data.data ?? [];
-    }
-  } catch {
-    // DB not available — use demo
-  }
+    const dbArticles = await prisma.article.findMany({
+      where: {
+        status: "PUBLISHED",
+        category: { slug },
+      },
+      orderBy: { publishedAt: "desc" },
+      skip: (page - 1) * LIMIT,
+      take: LIMIT,
+      include: {
+        author: { select: { id: true, name: true, image: true } },
+        category: { select: { id: true, name: true, slug: true, color: true } },
+        tags: { select: { tag: { select: { id: true, name: true, slug: true } } }, take: 3 },
+      },
+    });
+
+    articles = dbArticles.map((a) => ({
+      ...a,
+      viewCount: Number(a.viewCount),
+      shareCount: Number(a.shareCount),
+      likeCount: Number(a.likeCount),
+      _count: { comments: a.commentCount },
+    })) as ArticleWithRelations[];
+  } catch {}
 
   if (articles.length === 0) {
     articles = generateDemoArticles(slug);
   }
 
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+
+  // JSON-LD CollectionPage untuk halaman kategori
+  const collectionLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": `Berita ${cat.name} Terkini`,
+    "description": `Baca berita ${cat.name.toLowerCase()} terbaru dan terpercaya`,
+    "url": `${BASE_URL}/kategori/${slug}`,
+    "inLanguage": "id-ID",
+    "publisher": {
+      "@type": "NewsMediaOrganization",
+      "name": "PenaSakti",
+      "url": BASE_URL,
+    },
+  };
+
   return (
     <>
+      {/* JSON-LD CollectionPage */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
+      />
       {/* Category Header */}
       <div
         className="py-10 px-4 text-white"
@@ -117,7 +210,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           <div className="mt-4">
             <h1 className="text-4xl font-black mb-2">{cat.name}</h1>
             <p className="text-white/70">
-              Baca berita {cat.name.toLowerCase()} terkini, terupdate, dan terpercaya
+              {cat.description || `Baca berita ${cat.name.toLowerCase()} terkini, terupdate, dan terpercaya`}
             </p>
           </div>
         </div>

@@ -31,10 +31,35 @@ async function getTagData(slug: string, page: number) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
   const tagName = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const title = `#${tagName} - Berita & Artikel Terkini | PenaSakti`;
+  const description = `Kumpulan berita dan artikel terbaru tentang ${tagName}. Baca informasi terkini, terpercaya, dan berimbang hanya di PenaSakti.`;
+
   return {
-    title: `#${tagName} | PenaSakti`,
-    description: `Baca semua berita dan artikel tentang ${tagName} di PenaSakti.`,
+    title,
+    description,
+    alternates: {
+      canonical: `${BASE_URL}/tag/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${BASE_URL}/tag/${slug}`,
+      type: "website",
+      locale: "id_ID",
+      siteName: "PenaSakti",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      site: "@penasakti",
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
@@ -94,9 +119,46 @@ export default async function TagPage({ params, searchParams }: Props) {
         }));
 
   const totalPages = meta?.totalPages || 1;
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const tagUrl = `${BASE_URL}/tag/${slug}`;
+
+  // JSON-LD CollectionPage untuk halaman tag
+  const collectionLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": `#${tagName}`,
+    "description": `Kumpulan berita dan artikel terkait ${tagName}`,
+    "url": tagUrl,
+    "inLanguage": "id-ID",
+    "publisher": {
+      "@type": "NewsMediaOrganization",
+      "name": "PenaSakti",
+      "url": BASE_URL,
+    },
+  };
+
+  // JSON-LD BreadcrumbList
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Beranda", "item": BASE_URL },
+      { "@type": "ListItem", "position": 2, "name": "Tag", "item": `${BASE_URL}/tag` },
+      { "@type": "ListItem", "position": 3, "name": `#${tagName}`, "item": tagUrl },
+    ],
+  };
 
   return (
     <>
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       {/* Tag Header */}
       <div className="bg-gradient-to-br from-penasakti-blue to-penasakti-blue/80 py-10 px-4 text-white">
         <div className="container mx-auto">

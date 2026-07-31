@@ -1,17 +1,36 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Clock, Eye, User, ArrowLeft } from "lucide-react";
 import prisma from "@/lib/prisma";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
 import ArticleImage from "@/components/shared/ArticleImage";
+import ArticleShare from "@/components/article/ArticleShare";
 
-export const dynamic = "force-dynamic";
+// Halaman dirender secara dynamic agar selalu fresh
+// Crawler Google akan tetap bisa mengindeks karena ISR diaktifkan di bawah
+export const revalidate = 300; // revalidate setiap 5 menit
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+// Pre-render 200 artikel terpopuler saat build untuk kecepatan akses Google
+export async function generateStaticParams() {
+  try {
+    const articles = await prisma.article.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true },
+      orderBy: [{ isFeatured: "desc" }, { viewCount: "desc" }],
+      take: 200,
+    });
+    return articles.map((a) => ({ slug: a.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -20,22 +39,56 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const article = await prisma.article.findUnique({
       where: { slug },
-      select: { title: true, excerpt: true, metaTitle: true, metaDesc: true, ogImage: true, featuredImage: true, publishedAt: true },
+      select: {
+        title: true, excerpt: true, metaTitle: true, metaDesc: true,
+        ogImage: true, featuredImage: true, publishedAt: true, updatedAt: true,
+        author: { select: { name: true } },
+        category: { select: { name: true } },
+        tags: { select: { tag: { select: { name: true } } } },
+      },
     });
 
     if (!article) return { title: "Artikel Tidak Ditemukan" };
 
+    const title = article.metaTitle || article.title;
+    const description = article.metaDesc || article.excerpt || "";
+    const image = article.ogImage || article.featuredImage;
+    const keywords = article.tags.map(t => t.tag.name);
+
     return {
-      title: article.metaTitle || article.title,
-      description: article.metaDesc || article.excerpt || "",
+      title,
+      description,
+      keywords: keywords.length > 0 ? keywords : undefined,
+      authors: article.author?.name ? [{ name: article.author.name }] : undefined,
       openGraph: {
-        title: article.metaTitle || article.title,
-        description: article.metaDesc || article.excerpt || "",
-        images: article.ogImage || article.featuredImage ? [{ url: (article.ogImage || article.featuredImage)! }] : [],
+        title,
+        description,
+        images: image ? [{ url: image, width: 1200, height: 630, alt: title }] : [],
         type: "article",
         publishedTime: article.publishedAt?.toISOString(),
+        modifiedTime: article.updatedAt?.toISOString(),
+        authors: article.author?.name ? [article.author.name] : undefined,
+        section: article.category?.name,
+        tags: keywords,
+        siteName: "PenaSakti",
+        locale: "id_ID",
       },
-      alternates: { canonical: `/artikel/${slug}` },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: image ? [image] : undefined,
+        site: "@penasakti",
+      },
+      alternates: {
+        canonical: `${BASE_URL}/artikel/${slug}`,
+      },
+      robots: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     };
   } catch {
     return { title: "Artikel" };
@@ -66,8 +119,83 @@ export default async function ArticlePage({ params }: Props) {
     await prisma.article.update({ where: { slug }, data: { viewCount: { increment: 1 } } });
   } catch {}
 
+  const articleUrl = `${BASE_URL}/artikel/${slug}`;
+  const imageUrl = article.featuredImage || `${BASE_URL}/logo-penasakti.png`;
+
+  // Hitung word count dari konten (stripped HTML)
+  const plainText = article.content.replace(/<[^>]+>/g, " ").trim();
+  const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+
+  // JSON-LD NewsArticle schema untuk Google News & Rich Results
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": article.title,
+    "description": article.excerpt || article.metaDesc || "",
+    "url": articleUrl,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": articleUrl,
+    },
+    "datePublished": article.publishedAt?.toISOString() || article.createdAt.toISOString(),
+    "dateModified": article.updatedAt?.toISOString() || article.publishedAt?.toISOString() || article.createdAt.toISOString(),
+    "author": {
+      "@type": "Person",
+      "name": article.author?.name || "Redaksi PenaSakti",
+      "url": article.author?.name ? `${BASE_URL}/penulis/${article.author.name.toLowerCase().replace(/\s+/g, "-")}` : BASE_URL,
+    },
+    "publisher": {
+      "@type": "NewsMediaOrganization",
+      "name": "PenaSakti",
+      "url": BASE_URL,
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${BASE_URL}/logo-penasakti.png`,
+        "width": 200,
+        "height": 60,
+      },
+      "sameAs": [
+        "https://twitter.com/penasakti",
+        "https://www.facebook.com/penasakti",
+        "https://www.instagram.com/penasakti",
+      ],
+    },
+    "image": {
+      "@type": "ImageObject",
+      "url": imageUrl,
+      "width": 1200,
+      "height": 630,
+    },
+    "articleSection": article.category?.name || "Berita",
+    "keywords": article.tags?.map(({ tag }) => tag.name).join(", ") || "",
+    "inLanguage": "id-ID",
+    "isAccessibleForFree": true,
+    "wordCount": wordCount,
+    ...(article.isBreaking && { "genre": "Breaking News" }),
+  };
+
+  // JSON-LD BreadcrumbList
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Beranda", "item": BASE_URL },
+      { "@type": "ListItem", "position": 2, "name": article.category?.name || "Berita", "item": `${BASE_URL}/kategori/${article.category?.slug || "berita"}` },
+      { "@type": "ListItem", "position": 3, "name": article.title, "item": articleUrl },
+    ],
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <Breadcrumb
         items={[
           { label: "Beranda", href: "/" },
@@ -133,6 +261,9 @@ export default async function ArticlePage({ params }: Props) {
 
         {/* Content */}
         <div className="article-content prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: article.content }} />
+
+        {/* Share */}
+        <ArticleShare url={articleUrl} title={article.title} />
 
         {/* Tags */}
         {article.tags && article.tags.length > 0 && (

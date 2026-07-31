@@ -100,13 +100,43 @@ async function getAuthorArticles(slug: string, page: number) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
   const author = await getAuthorData(slug);
-  const displayName = author?.displayName || slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+  const displayName =
+    author?.displayName ||
+    slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+  const title = `${displayName} - Profil Jurnalis | PenaSakti`;
+  const description =
+    author?.bio ||
+    `Baca semua artikel dari ${displayName} di PenaSakti - portal berita nasional terpercaya Indonesia.`;
+  const avatar = author?.avatar || null;
+
   return {
-    title: `${displayName} - Profil Penulis | PenaSakti`,
-    description:
-      author?.bio ||
-      `Baca semua artikel dari ${displayName} di PenaSakti.`,
+    title,
+    description,
+    alternates: {
+      canonical: `${BASE_URL}/penulis/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${BASE_URL}/penulis/${slug}`,
+      type: "profile",
+      locale: "id_ID",
+      siteName: "PenaSakti",
+      images: avatar ? [{ url: avatar, width: 400, height: 400, alt: displayName }] : [],
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      site: "@penasakti",
+      images: avatar ? [avatar] : undefined,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
@@ -168,8 +198,50 @@ export default async function AuthorPage({ params, searchParams }: Props) {
   const displayArticles: ArticleWithRelations[] =
     articles.length > 0 ? articles : generateDemoArticles(slug);
 
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+  const authorUrl = `${BASE_URL}/penulis/${slug}`;
+
+  // JSON-LD Person schema
+  const personLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": displayAuthor.displayName,
+    "url": authorUrl,
+    "description": displayAuthor.bio || undefined,
+    "image": displayAuthor.avatar || undefined,
+    "jobTitle": "Jurnalis",
+    "worksFor": {
+      "@type": "NewsMediaOrganization",
+      "name": "PenaSakti",
+      "url": BASE_URL,
+    },
+    ...(displayAuthor.user.twitter && {
+      "sameAs": [`https://twitter.com/${displayAuthor.user.twitter}`],
+    }),
+  };
+
+  // JSON-LD BreadcrumbList
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Beranda", "item": BASE_URL },
+      { "@type": "ListItem", "position": 2, "name": "Penulis", "item": `${BASE_URL}/penulis` },
+      { "@type": "ListItem", "position": 3, "name": displayAuthor.displayName, "item": authorUrl },
+    ],
+  };
+
   return (
     <>
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       {/* Cover */}
       <div className="relative h-48 bg-gradient-to-br from-penasakti-blue to-penasakti-blue/80">
         {displayAuthor.coverImage && (

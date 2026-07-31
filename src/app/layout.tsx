@@ -37,14 +37,18 @@ export const metadata: Metadata = {
     "portal berita",
     "penasakti",
     "berita hari ini",
+    "berita online",
+    "portal berita indonesia",
   ],
   authors: [{ name: "Redaksi PenaSakti", url: APP_URL }],
   creator: "PenaSakti",
   publisher: "PenaSakti",
+  category: "news",
+  classification: "News",
   verification: {
-      google: "KmEDoRWCc4pWbSl_-rfKwgS5vMmV4n93dU3v6YO8Af0",
-    },
-    robots: {
+    google: "KmEDoRWCc4pWbSl_-rfKwgS5vMmV4n93dU3v6YO8Af0",
+  },
+  robots: {
     index: true,
     follow: true,
     googleBot: {
@@ -109,6 +113,48 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // JSON-LD Organization + WebSite schema di level root
+  const organizationLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsMediaOrganization",
+    "name": APP_NAME,
+    "url": APP_URL,
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${APP_URL}/logo-penasakti.png`,
+      "width": 200,
+      "height": 60,
+    },
+    "sameAs": [
+      "https://twitter.com/penasakti",
+      "https://www.facebook.com/penasakti",
+      "https://www.instagram.com/penasakti",
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "redaksi@penasakti.com",
+      "contactType": "editorial",
+      "availableLanguage": "Indonesian",
+    },
+  };
+
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": APP_NAME,
+    "url": APP_URL,
+    "description": "Portal berita nasional terpercaya Indonesia",
+    "inLanguage": "id-ID",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": `${APP_URL}/pencarian?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
@@ -117,6 +163,22 @@ export default function RootLayout({
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
+        />
+        {/* RSS Feed Discovery */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="PenaSakti RSS Feed"
+          href={`${APP_URL}/rss.xml`}
+        />
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
         />
       </head>
       <body

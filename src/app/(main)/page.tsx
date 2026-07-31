@@ -2,9 +2,24 @@ import { Metadata } from "next";
 import HomeClient from "@/components/home/HomeClient";
 import prisma from "@/lib/prisma";
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://penasakti.com";
+
 export const metadata: Metadata = {
   title: "PenaSakti - Portal Berita Nasional Terpercaya",
-  description: "Baca berita terkini Indonesia: politik, ekonomi, teknologi, olahraga, dan gaya hidup. Cepat, akurat, dan terpercaya.",
+  description:
+    "Baca berita terkini Indonesia: politik, ekonomi, teknologi, olahraga, dan gaya hidup. Cepat, akurat, dan terpercaya.",
+  alternates: {
+    canonical: BASE_URL,
+  },
+  openGraph: {
+    title: "PenaSakti - Portal Berita Nasional Terpercaya",
+    description:
+      "Baca berita terkini Indonesia: politik, ekonomi, teknologi, olahraga, dan gaya hidup. Cepat, akurat, dan terpercaya.",
+    url: BASE_URL,
+    siteName: "PenaSakti",
+    locale: "id_ID",
+    type: "website",
+  },
 };
 
 export const revalidate = 300; // revalidate setiap 5 menit
