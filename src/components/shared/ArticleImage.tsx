@@ -51,33 +51,58 @@ function Placeholder({ category }: { category?: string }) {
 }
 
 /**
- * Cek apakah URL gambar valid dan bisa dioptimasi oleh Next.js Image.
- * URL WordPress lama (wp-content/uploads) tidak bisa diakses langsung —
- * tampilkan placeholder saja daripada gambar broken.
+ * Cek apakah URL valid untuk ditampilkan.
+ * Hanya blokir URL wp-content dari server WordPress lama yang sudah mati.
  */
 function isValidSrc(src: string): boolean {
   if (!src) return false;
-  // URL WordPress lama — tidak bisa diakses
+  // Server WordPress lama sudah mati — jangan coba load
   if (src.includes("penasakti.com/wp-content/uploads/")) return false;
-  if (src.includes("/api/proxy-image")) return false;
-  // Semua URL https/http yang valid
-  if (src.startsWith("https://")) return true;
-  if (src.startsWith("http://")) return true;
+  if (src.includes("cdn.penasakti.com/wp-content/")) return false;
+  // Semua URL https/http/relatif/data valid
+  return (
+    src.startsWith("https://") ||
+    src.startsWith("http://") ||
+    src.startsWith("data:") ||
+    src.startsWith("/")
+  );
+}
+
+/**
+ * Tentukan apakah perlu melalui Next.js Image Optimization (/_next/image).
+ *
+ * - Cloudinary: sudah punya CDN + transformasi sendiri → unoptimized=true
+ *   (bypass Next.js agar tidak kena quota limit Vercel & tidak double-compress)
+ * - Vercel Blob: sama, sudah di-serve via Vercel CDN → unoptimized=true
+ * - URL internal (/): tetap di-optimize Next.js
+ * - data: URI: tidak bisa di-optimize
+ * - URL eksternal lain: di-optimize Next.js (via remotePatterns "**")
+ */
+function shouldBypassNextOptimization(src: string): boolean {
+  // Cloudinary — sudah punya CDN global & auto-format
+  if (src.includes("res.cloudinary.com")) return true;
+  if (src.includes("cloudinary.com")) return true;
+  // Vercel Blob — sudah di-serve via Vercel CDN
+  if (src.includes("vercel-storage.com")) return true;
+  if (src.includes("blob.vercel-storage.com")) return true;
+  // data URI — tidak bisa di-optimize
   if (src.startsWith("data:")) return true;
-  if (src.startsWith("/")) return true;
+  // proxy-image — URL sudah via server kita sendiri
+  if (src.includes("/api/proxy-image")) return true;
   return false;
 }
 
 /**
- * Semua URL https/http yang valid dioptimasi oleh Next.js Image.
- * remotePatterns di next.config.ts sudah mencakup semua domain utama.
- * URL relatif (/) juga dioptimasi secara default.
- * Hanya data: URI yang tidak bisa dioptimasi Next.js (bypass saja).
+ * Untuk Cloudinary: tambahkan transformasi otomatis f_auto,q_auto
+ * agar Cloudinary serve format terbaik (WebP/AVIF) dengan kualitas optimal.
+ * Ini menggantikan fungsi Next.js Image Optimization.
  */
-function isOptimizableUrl(src: string): boolean {
-  if (src.startsWith("data:")) return false;
-  // URL relatif & semua https/http dioptimasi
-  return true;
+function optimizeCloudinaryUrl(src: string): string {
+  if (!src.includes("res.cloudinary.com")) return src;
+  // Sudah ada transformasi → jangan tambah lagi
+  if (src.includes("/f_auto") || src.includes("/q_auto")) return src;
+  // Sisipkan f_auto,q_auto setelah /upload/
+  return src.replace("/upload/", "/upload/f_auto,q_auto/");
 }
 
 export default function ArticleImage({
@@ -98,25 +123,24 @@ export default function ArticleImage({
     return <Placeholder category={category} />;
   }
 
-  // Gambar dari domain yang terdaftar dioptimasi (compress + webp/avif)
-  // Gambar dari domain eksternal lain → unoptimized agar tidak error
-  const shouldOptimize = isOptimizableUrl(src);
+  // Cloudinary: pakai transformasi Cloudinary langsung (lebih efisien)
+  const finalSrc = optimizeCloudinaryUrl(src);
+  const unoptimized = shouldBypassNextOptimization(finalSrc);
 
   const commonProps = {
     alt: alt || "",
     className,
     priority: priority ?? false,
-    quality: shouldOptimize ? quality : undefined,
-    unoptimized: !shouldOptimize,
+    quality: unoptimized ? undefined : quality,
+    unoptimized,
     onError: () => setError(true),
-    // Lazy loading otomatis untuk gambar non-priority
     loading: priority ? ("eager" as const) : ("lazy" as const),
   };
 
   if (fill) {
     return (
       <Image
-        src={src}
+        src={finalSrc}
         fill
         sizes={sizes || "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
         {...commonProps}
@@ -126,7 +150,7 @@ export default function ArticleImage({
 
   return (
     <Image
-      src={src}
+      src={finalSrc}
       width={width || 600}
       height={height || 400}
       sizes={sizes}
