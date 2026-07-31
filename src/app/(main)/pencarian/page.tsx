@@ -1,81 +1,143 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Mic, TrendingUp, Clock, X } from "lucide-react";
+import { Search, TrendingUp, X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import ArticleCard from "@/components/article/ArticleCard";
-import { useQuery } from "@tanstack/react-query";
-import { debounce } from "@/lib/utils";
+import type { ArticleWithRelations } from "@/types";
 
 const TRENDING_SEARCHES = [
   "Pemilu 2026", "IKN Nusantara", "Liga Champions", "iPhone 17",
   "BPJS", "Harga BBM", "Timnas Indonesia", "Gempa Hari Ini",
 ];
 
+interface SearchMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  query: string;
+}
+
 function SearchContent() {
-  const router = useRouter();
+  const router      = useRouter();
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") || "";
-  const [query, setQuery] = useState(initialQuery);
-  const [inputValue, setInputValue] = useState(initialQuery);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["search", query],
-    queryFn: async () => {
-      if (!query.trim() || query.length < 2) return null;
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=12`);
-      return res.json();
-    },
-    enabled: query.trim().length >= 2,
-  });
+  const initialQ    = searchParams.get("q") || "";
+  const initialPage = parseInt(searchParams.get("page") || "1");
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputValue.trim()) {
-      setQuery(inputValue.trim());
-      router.push(`/pencarian?q=${encodeURIComponent(inputValue.trim())}`, { scroll: false });
+  const [inputValue, setInputValue] = useState(initialQ);
+  const [results,    setResults]    = useState<ArticleWithRelations[]>([]);
+  const [meta,       setMeta]       = useState<SearchMeta | null>(null);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState<string | null>(null);
+  const [searchedQ,  setSearchedQ]  = useState(initialQ);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // ── Fungsi search utama ─────────────────────────────────────────────────
+  const doSearch = useCallback(async (q: string, page = 1) => {
+    if (!q.trim() || q.trim().length < 2) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(
+        `/api/search?q=${encodeURIComponent(q.trim())}&page=${page}&limit=12`
+      );
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        setError(json.error || "Terjadi kesalahan, coba lagi.");
+        setResults([]);
+        setMeta(null);
+        return;
+      }
+
+      setResults(json.data || []);
+      setMeta(json.meta || null);
+      setSearchedQ(q.trim());
+    } catch {
+      setError("Tidak bisa terhubung ke server. Coba lagi.");
+      setResults([]);
+      setMeta(null);
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  // Jalankan search otomatis jika URL sudah punya ?q=
+  useEffect(() => {
+    if (initialQ.trim().length >= 2) {
+      doSearch(initialQ, initialPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Submit form ─────────────────────────────────────────────────────────
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = inputValue.trim();
+    if (!q) return;
+    router.push(`/pencarian?q=${encodeURIComponent(q)}`, { scroll: false });
+    doSearch(q, 1);
   };
 
-  const handleTrendingClick = (term: string) => {
+  // ── Klik trending ───────────────────────────────────────────────────────
+  const handleTrending = (term: string) => {
     setInputValue(term);
-    setQuery(term);
-    router.push(`/pencarian?q=${encodeURIComponent(term)}`);
+    router.push(`/pencarian?q=${encodeURIComponent(term)}`, { scroll: false });
+    doSearch(term, 1);
   };
+
+  // ── Ganti halaman ───────────────────────────────────────────────────────
+  const goPage = (page: number) => {
+    router.push(`/pencarian?q=${encodeURIComponent(searchedQ)}&page=${page}`, { scroll: true });
+    doSearch(searchedQ, page);
+  };
+
+  const hasResults = results.length > 0;
+  const hasQuery   = searchedQ.trim().length >= 2;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Search Bar */}
+      {/* ── Search Bar ── */}
       <div className="max-w-3xl mx-auto mb-10">
-        <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" />
+        <form onSubmit={handleSubmit} className="relative">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
           <input
+            ref={inputRef}
             type="search"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Cari berita, topik, penulis..."
             autoFocus
-            className="w-full pl-14 pr-24 py-4 text-lg border-2 border-border rounded-2xl bg-background focus:outline-none focus:border-penasakti-blue focus:ring-4 focus:ring-penasakti-blue/10 transition-all"
+            className="w-full pl-14 pr-28 py-4 text-base sm:text-lg border-2 border-border rounded-2xl bg-background focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
           />
           {inputValue && (
             <button
               type="button"
-              onClick={() => { setInputValue(""); setQuery(""); }}
-              className="absolute right-16 top-1/2 -translate-y-1/2 p-2 hover:bg-muted rounded-lg transition-colors"
+              onClick={() => { setInputValue(""); setResults([]); setMeta(null); setSearchedQ(""); inputRef.current?.focus(); }}
+              className="absolute right-20 top-1/2 -translate-y-1/2 p-1.5 hover:bg-muted rounded-lg transition-colors"
+              aria-label="Hapus"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
           <button
             type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-penasakti-blue text-white rounded-xl font-semibold hover:bg-penasakti-blue/90 transition-colors text-sm"
+            disabled={loading || inputValue.trim().length < 2}
+            className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
           >
-            Cari
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cari"}
           </button>
         </form>
 
-        {/* Trending Searches */}
-        {!query && (
+        {/* Trending — hanya tampil jika belum ada query */}
+        {!hasQuery && !loading && (
           <div className="mt-6">
             <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
               <TrendingUp className="w-4 h-4" /> Trending Pencarian
@@ -84,8 +146,8 @@ function SearchContent() {
               {TRENDING_SEARCHES.map((term) => (
                 <button
                   key={term}
-                  onClick={() => handleTrendingClick(term)}
-                  className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-full text-sm transition-colors"
+                  onClick={() => handleTrending(term)}
+                  className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-full text-sm transition-colors border border-border hover:border-blue-400"
                 >
                   {term}
                 </button>
@@ -95,45 +157,130 @@ function SearchContent() {
         )}
       </div>
 
-      {/* Results */}
-      {isLoading && (
+      {/* ── Loading skeleton ── */}
+      {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-64 rounded-2xl skeleton" />
+            <div key={i} className="h-64 rounded-2xl bg-muted animate-pulse" />
           ))}
         </div>
       )}
 
-      {data?.data && !isLoading && (
+      {/* ── Error ── */}
+      {error && !loading && (
+        <div className="max-w-lg mx-auto text-center py-16">
+          <p className="text-4xl mb-4">⚠️</p>
+          <h2 className="text-lg font-bold mb-2 text-destructive">{error}</h2>
+          <button
+            onClick={() => doSearch(searchedQ || inputValue)}
+            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
+
+      {/* ── Hasil pencarian ── */}
+      {!loading && !error && hasQuery && (
         <>
-          <div className="flex items-center justify-between mb-5">
-            <p className="text-muted-foreground">
-              Ditemukan <span className="font-bold text-foreground">{data.meta?.total || 0}</span> hasil untuk{" "}
-              <span className="font-bold text-penasakti-blue">"{query}"</span>
+          {/* Info hasil */}
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-sm text-muted-foreground">
+              {meta?.total
+                ? <>Ditemukan <span className="font-bold text-foreground">{meta.total.toLocaleString()}</span> hasil untuk <span className="font-semibold text-blue-600">"{searchedQ}"</span></>
+                : <>Tidak ada hasil untuk <span className="font-semibold text-blue-600">"{searchedQ}"</span></>
+              }
             </p>
+            {meta && meta.totalPages > 1 && (
+              <p className="text-xs text-muted-foreground">
+                Halaman {meta.page} dari {meta.totalPages}
+              </p>
+            )}
           </div>
 
-          {data.data.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {data.data.map((article: never) => (
-                <ArticleCard key={(article as { id: string }).id} article={article} variant="vertical" />
-              ))}
-            </div>
+          {/* Grid artikel */}
+          {hasResults ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {results.map((article) => (
+                  <ArticleCard key={article.id} article={article} variant="vertical" />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {meta && meta.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-10">
+                  <button
+                    onClick={() => goPage(meta.page - 1)}
+                    disabled={!meta.hasPrevPage}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Sebelumnya
+                  </button>
+
+                  {/* Nomor halaman */}
+                  <div className="flex gap-1">
+                    {Array.from({ length: Math.min(meta.totalPages, 7) }, (_, i) => {
+                      const pg = i + 1;
+                      return (
+                        <button
+                          key={pg}
+                          onClick={() => goPage(pg)}
+                          className={`w-9 h-9 rounded-xl text-sm font-semibold transition-colors ${
+                            pg === meta.page
+                              ? "bg-blue-600 text-white"
+                              : "border border-border hover:bg-muted"
+                          }`}
+                        >
+                          {pg}
+                        </button>
+                      );
+                    })}
+                    {meta.totalPages > 7 && (
+                      <span className="flex items-center px-2 text-muted-foreground text-sm">…{meta.totalPages}</span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => goPage(meta.page + 1)}
+                    disabled={!meta.hasNextPage}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                  >
+                    Berikutnya <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
+            // Tidak ada hasil
             <div className="text-center py-20">
               <p className="text-5xl mb-4">🔍</p>
               <h2 className="text-xl font-bold mb-2">Tidak ada hasil ditemukan</h2>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground mb-6">
                 Coba kata kunci lain atau periksa ejaan Anda
               </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {TRENDING_SEARCHES.slice(0, 4).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => handleTrending(t)}
+                    className="px-4 py-2 bg-muted rounded-full text-sm hover:bg-muted/80 transition-colors"
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </>
       )}
 
-      {!query && !isLoading && (
+      {/* ── Empty state — belum pernah search ── */}
+      {!loading && !error && !hasQuery && (
         <div className="text-center py-20">
-          <p className="text-5xl mb-4">🔍</p>
+          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+            <Search className="w-9 h-9 text-muted-foreground" />
+          </div>
           <h2 className="text-xl font-bold mb-2">Cari Berita Apapun</h2>
           <p className="text-muted-foreground">
             Masukkan kata kunci untuk mencari berita, topik, atau penulis
@@ -146,7 +293,11 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-20 text-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-20 text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
+      </div>
+    }>
       <SearchContent />
     </Suspense>
   );
