@@ -6,7 +6,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 dark:bg-gray-950 text-white mt-16">
+    <footer className="bg-gray-900 dark:bg-gray-950 text-white mt-16 pb-16 lg:pb-0">
       {/* Newsletter Section */}
       <div className="border-b border-white/10">
         <div className="container mx-auto px-4 py-10">
@@ -170,8 +170,25 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-white/10">
-        <div className="container mx-auto px-4 py-5">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-white/40">
+        <div className="container mx-auto px-4 py-4">
+          {/* Mobile: semua dalam satu blok rapat */}
+          <div className="flex flex-col items-center gap-1.5 md:hidden text-center">
+            <p className="text-xs text-white/40">© {year} PenaSakti. Hak Cipta Dilindungi.</p>
+            <p className="text-xs text-white/40">PT PenaSakti Media Digital</p>
+            <p className="text-xs text-white/40">
+              Website by{" "}
+              <a
+                href="https://nufanas.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/60 hover:text-white transition-colors underline underline-offset-2"
+              >
+                nufanas.com
+              </a>
+            </p>
+          </div>
+          {/* Desktop: satu baris */}
+          <div className="hidden md:flex flex-row items-center justify-between gap-3 text-sm text-white/40">
             <p>© {year} PenaSakti. Hak Cipta Dilindungi.</p>
             <p>PT PenaSakti Media Digital</p>
             <p>
