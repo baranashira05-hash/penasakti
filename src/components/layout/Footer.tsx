@@ -177,12 +177,12 @@ export default function Footer() {
             <p>
               Website by{" "}
               <a
-                href="https://nuvanas.com"
+                href="https://nufanas.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white/60 hover:text-white transition-colors underline underline-offset-2"
               >
-                nuvanas.com
+                nufanas.com
               </a>
             </p>
           </div>
