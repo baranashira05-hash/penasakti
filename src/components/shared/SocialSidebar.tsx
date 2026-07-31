@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const YOUTUBE_URL = "https://www.youtube.com/@penasakticom";
+const YOUTUBE_URL = "https://www.youtube.com/@mediapenasaktinews";
 const TIKTOK_URL  = "https://www.tiktok.com/@penasakti.com";
 
 // Icon YouTube custom (merah khas YT)
