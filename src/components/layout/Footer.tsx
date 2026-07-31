@@ -173,11 +173,17 @@ export default function Footer() {
         <div className="container mx-auto px-4 py-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-white/40">
             <p>© {year} PenaSakti. Hak Cipta Dilindungi.</p>
+            <p>PT PenaSakti Media Digital</p>
             <p>
-              PT PenaSakti Media Digital | AHU-XXXXXXX | Anggota Dewan Pers
-            </p>
-            <p>
-              Dibuat dengan ❤️ di Indonesia
+              Website by{" "}
+              <a
+                href="https://nuvanas.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/60 hover:text-white transition-colors underline underline-offset-2"
+              >
+                nuvanas.com
+              </a>
             </p>
           </div>
         </div>
