@@ -32,10 +32,8 @@ export default function AboutPage() {
   ];
 
   const team = [
-    { name: "Dr. Ahmad Wijaya", role: "Pemimpin Redaksi", image: "https://picsum.photos/seed/editor1/200/200" },
-    { name: "Siti Nurhaliza, M.Si.", role: "Wakil Pemimpin Redaksi", image: "https://picsum.photos/seed/editor2/200/200" },
-    { name: "Budi Prasetyo", role: "Managing Editor", image: "https://picsum.photos/seed/editor3/200/200" },
-    { name: "Dewi Lestari", role: "Head of News Desk", image: "https://picsum.photos/seed/editor4/200/200" },
+    { name: "Ugastra, MB, SH", role: "Pemimpin Redaksi", image: "https://picsum.photos/seed/editor1/200/200" },
+    { name: "Agus Yulianto", role: "Editor Kontributor", image: "https://picsum.photos/seed/editor2/200/200" },
   ];
 
   const milestones = [

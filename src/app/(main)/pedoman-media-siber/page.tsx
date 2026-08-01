@@ -76,7 +76,7 @@ Masyarakat dapat melaporkan dugaan pelanggaran pedoman ini melalui email ke ombu
       content: `Pedoman Media Siber ini ditetapkan di Jakarta, berlaku sejak tanggal 1 Januari 2026 dan dapat dievaluasi sewaktu-waktu sesuai dengan perkembangan hukum dan kebutuhan organisasi.
 
 Pemimpin Redaksi PenaSakti
-Dr. Ahmad Wijaya`,
+Ugastra, MB, SH`,
     },
   ];
 

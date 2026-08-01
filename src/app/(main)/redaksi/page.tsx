@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Users, Pen, Camera, Edit3, Newspaper } from "lucide-react";
+import { Edit3 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Redaksi",
@@ -8,58 +8,16 @@ export const metadata: Metadata = {
 
 export default function RedaksiPage() {
   const editors = [
-    { name: "Dr. Ahmad Wijaya", role: "Pemimpin Redaksi", email: "ahmad@penasakti.com", dept: "Pimpinan", image: "https://picsum.photos/seed/red1/200/200" },
-    { name: "Siti Nurhaliza, M.Si.", role: "Wakil Pemimpin Redaksi", email: "siti@penasakti.com", dept: "Pimpinan", image: "https://picsum.photos/seed/red2/200/200" },
-    { name: "Budi Prasetyo", role: "Managing Editor", email: "budi@penasakti.com", dept: "Pimpinan", image: "https://picsum.photos/seed/red3/200/200" },
+    { name: "Ugastra, MB, SH", role: "Pemimpin Redaksi", email: "redaksi@penasakti.com", dept: "Pimpinan", image: "https://picsum.photos/seed/red1/200/200" },
   ];
 
   const sections = [
     {
-      title: "Desk Politik & Hukum",
-      icon: Pen,
-      color: "bg-purple-500",
-      members: [
-        { name: "Dewi Lestari", role: "Head of Desk", image: "https://picsum.photos/seed/sec1a/150/150" },
-        { name: "Fajar Nugroho", role: "Reporter Senior", image: "https://picsum.photos/seed/sec1b/150/150" },
-        { name: "Maya Putri", role: "Reporter", image: "https://picsum.photos/seed/sec1c/150/150" },
-      ],
-    },
-    {
-      title: "Desk Ekonomi & Bisnis",
-      icon: Newspaper,
-      color: "bg-green-500",
-      members: [
-        { name: "Rizki Hakim", role: "Head of Desk", image: "https://picsum.photos/seed/sec2a/150/150" },
-        { name: "Linda Wijaya", role: "Reporter Senior", image: "https://picsum.photos/seed/sec2b/150/150" },
-        { name: "Arif Rahman", role: "Reporter", image: "https://picsum.photos/seed/sec2c/150/150" },
-      ],
-    },
-    {
-      title: "Desk Teknologi",
+      title: "Editor & Kontributor",
       icon: Edit3,
       color: "bg-teal-500",
       members: [
-        { name: "Kevin Sanjaya", role: "Head of Desk", image: "https://picsum.photos/seed/sec3a/150/150" },
-        { name: "Nina Ayu", role: "Reporter Senior", image: "https://picsum.photos/seed/sec3b/150/150" },
-      ],
-    },
-    {
-      title: "Desk Olahraga",
-      icon: Users,
-      color: "bg-orange-500",
-      members: [
-        { name: "Yudi Pratama", role: "Head of Desk", image: "https://picsum.photos/seed/sec4a/150/150" },
-        { name: "Rina Amelia", role: "Reporter", image: "https://picsum.photos/seed/sec4b/150/150" },
-        { name: "Dimas Adi", role: "Reporter", image: "https://picsum.photos/seed/sec4c/150/150" },
-      ],
-    },
-    {
-      title: "Desk Foto & Visual",
-      icon: Camera,
-      color: "bg-blue-500",
-      members: [
-        { name: "Eko Prabowo", role: "Foto Editor", image: "https://picsum.photos/seed/sec5a/150/150" },
-        { name: "Sari Dewi", role: "Fotografer Senior", image: "https://picsum.photos/seed/sec5b/150/150" },
+        { name: "Agus Yulianto", role: "Editor Kontributor", image: "https://picsum.photos/seed/sec3a/150/150" },
       ],
     },
   ];
