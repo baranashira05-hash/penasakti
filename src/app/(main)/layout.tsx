@@ -9,9 +9,9 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div className="min-h-screen flex flex-col overflow-x-hidden w-full">
       <Header />
-      <main className="flex-1 pb-16 lg:pb-0 min-w-0 overflow-x-hidden">{children}</main>
+      <main className="flex-1 pb-16 lg:pb-0 w-full min-w-0">{children}</main>
       <Footer />
       <MobileBottomNav />
       <ServiceWorkerRegister />

@@ -158,11 +158,11 @@
 
 /* Article Content */
 .article-content {
-  font-size: 1.125rem;
-  line-height: 1.8;
-  overflow-x: hidden;
+  font-size: 1.0625rem;
+  line-height: 1.85;
   word-break: break-word;
   overflow-wrap: break-word;
+  width: 100%;
 }
 
 /* Semua media & konten di dalam artikel tidak boleh melebihi lebar container */
@@ -173,15 +173,39 @@
 .article-content object,
 .article-content canvas,
 .article-content svg {
-  max-width: 100%;
-  height: auto;
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
   display: block;
+}
+
+/* Gambar full-width di dalam artikel */
+.article-content figure {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  overflow: hidden;
+}
+
+.article-content figure img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: cover;
+}
+
+/* Jika gambar di-wrap p tag */
+.article-content p > img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
 }
 
 /* Iframe (YouTube, Google Maps, dll) */
 .article-content iframe {
-  max-width: 100%;
-  width: 100%;
+  max-width: 100% !important;
+  width: 100% !important;
 }
 
 /* YouTube embed yang di-wrap TipTap */

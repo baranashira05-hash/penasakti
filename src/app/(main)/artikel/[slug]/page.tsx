@@ -232,7 +232,8 @@ export default async function ArticlePage({ params }: Props) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="container mx-auto px-4 py-6">
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
@@ -268,7 +269,7 @@ export default async function ArticlePage({ params }: Props) {
         </h1>
 
         {/* Meta */}
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6 pb-6 border-b border-gray-200 dark:border-slate-700">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-6 pb-6 border-b border-gray-200 dark:border-slate-700">
           {article.author && (
             <span className="flex items-center gap-1.5">
               <User className="w-4 h-4" />
@@ -286,17 +287,17 @@ export default async function ArticlePage({ params }: Props) {
           {article.readTime && <span>{article.readTime} menit baca</span>}
         </div>
 
-        {/* Featured Image */}
+        {/* Featured Image — full width di mobile */}
         {article.featuredImage && (
-          <figure className="mb-8">
-            <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800">
+          <figure className="mb-6 -mx-4 sm:mx-0">
+            <div className="relative w-full aspect-[16/9] sm:rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-800">
               <ArticleImage
                 src={article.featuredImage}
                 alt={article.title}
                 fill
                 className="object-cover"
                 priority
-                sizes="(max-width: 1024px) 100vw, 900px"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 900px"
                 category={article.category?.slug}
               />
             </div>
@@ -306,7 +307,10 @@ export default async function ArticlePage({ params }: Props) {
         <AdBanner position="IN_ARTICLE" className="mb-6" />
 
         {/* Content */}
-        <div className="article-content prose prose-lg max-w-none dark:prose-invert w-full overflow-x-hidden" dangerouslySetInnerHTML={{ __html: article.content }} />
+        <div
+          className="article-content prose prose-lg max-w-none dark:prose-invert w-full"
+          dangerouslySetInnerHTML={{ __html: article.content }}
+        />
 
         {/* Share */}
         <ArticleShare url={articleUrl} title={article.title} />
@@ -331,6 +335,7 @@ export default async function ArticlePage({ params }: Props) {
           </Link>
         </div>
       </article>
+      </div>
     </div>
   );
 }
