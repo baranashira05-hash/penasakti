@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/auth";
-import { put } from "@vercel/blob";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // POST /api/redaksi/upload — upload foto anggota redaksi (SUPER_ADMIN only)
 export async function POST(req: NextRequest) {
@@ -21,7 +27,10 @@ export async function POST(req: NextRequest) {
     // Validasi tipe file
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: "Hanya file gambar yang diizinkan (jpg, png, webp, gif)" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Hanya file gambar yang diizinkan (jpg, png, webp, gif)" },
+        { status: 400 }
+      );
     }
 
     // Validasi ukuran — maks 5MB
@@ -29,17 +38,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Ukuran file maksimal 5MB" }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop() || "jpg";
-    const fileName = `redaksi/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    // Konversi ke base64
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-    const blob = await put(fileName, file, {
-      access: "public",
-      contentType: file.type,
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: "penasakti/redaksi",
+      resource_type: "image",
+      transformation: [
+        { width: 400, height: 400, crop: "fill", gravity: "face" },
+        { quality: "auto:good" },
+        { fetch_format: "auto" },
+      ],
     });
 
-    return NextResponse.json({ url: blob.url }, { status: 201 });
-  } catch (error) {
+    return NextResponse.json({ url: result.secure_url }, { status: 201 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Upload gagal";
     console.error("[API/REDAKSI/UPLOAD]", error);
-    return NextResponse.json({ error: "Gagal upload foto" }, { status: 500 });
+    return NextResponse.json({ error: "Gagal upload foto: " + msg }, { status: 500 });
   }
 }
