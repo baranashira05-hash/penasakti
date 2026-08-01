@@ -7,10 +7,12 @@ import { signIn } from "next-auth/react";
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "EDITOR", "JOURNALIST", "SEO_TEAM", "MODERATOR"];
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/";
+  const redirectParam = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,8 +28,21 @@ function LoginForm() {
       if (result?.error) {
         toast.error(result.error || "Login gagal");
       } else {
+        // Ambil session untuk cek role
+        const res = await fetch("/api/auth/session");
+        const session = await res.json();
+        const role = session?.user?.role || "USER";
+
         toast.success("Berhasil masuk!");
-        router.push(redirect);
+
+        // Admin/staf → dashboard, user biasa → redirect param atau homepage
+        if (redirectParam) {
+          router.push(redirectParam);
+        } else if (ADMIN_ROLES.includes(role)) {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
+        }
         router.refresh();
       }
     } catch {
@@ -38,7 +53,7 @@ function LoginForm() {
   };
 
   const handleOAuth = async (provider: "google" | "facebook") => {
-    await signIn(provider, { callbackUrl: redirect });
+    await signIn(provider, { callbackUrl: redirectParam || "/dashboard" });
   };
 
   return (
