@@ -802,6 +802,34 @@ model AdCampaign {
   @@map("ad_campaigns")
 }
 
+// ==================== REDAKSI ====================
+
+enum RedaksiGroup {
+  PIMPINAN
+  EDITOR
+  REPORTER
+  FOTOGRAFER
+  DESAIN
+  TEKNIK
+  KONTRIBUTOR
+}
+
+model RedaksiMember {
+  id        String       @id @default(cuid())
+  name      String
+  jabatan   String
+  group     RedaksiGroup @default(EDITOR)
+  photo     String?
+  email     String?
+  order     Int          @default(0)
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([group, order])
+  @@map("redaksi_members")
+}
+
 // ==================== LIVE STREAMING ====================
 
 enum LiveStatus {
