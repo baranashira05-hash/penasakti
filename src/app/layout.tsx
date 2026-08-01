@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Merriweather } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { AuthProvider } from "@/components/shared/AuthProvider";
@@ -211,6 +212,26 @@ export default function RootLayout({
             </ThemeProvider>
           </QueryProvider>
         </AuthProvider>
+
+        {/* Google Subscribe with Google (Reader Revenue Manager) */}
+        <Script
+          src="https://news.google.com/swg/js/v1/swg-basic.js"
+          strategy="afterInteractive"
+          async
+          type="application/javascript"
+        />
+        <Script id="swg-init" strategy="afterInteractive">
+          {`
+            (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
+              basicSubscriptions.init({
+                type: "NewsArticle",
+                isPartOfType: ["Product"],
+                isPartOfProductId: "CAow3ac9DA:openaccess",
+                clientOptions: { theme: "light", lang: "id" },
+              });
+            });
+          `}
+        </Script>
       </body>
     </html>
   );
