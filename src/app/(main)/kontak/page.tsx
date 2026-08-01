@@ -59,15 +59,15 @@ export default function ContactPage() {
     {
       icon: Phone,
       label: "Telepon",
-      value: "(021) 123-4567",
-      href: "tel:+62211234567",
+      value: "0895-3386-37405",
+      href: "tel:+6289533863740",
       color: "text-purple-600",
     },
     {
       icon: Phone,
       label: "WhatsApp",
-      value: "+62 812-3456-7890",
-      href: "https://wa.me/6281234567890",
+      value: "0895-3386-37405",
+      href: "https://wa.me/6289533863740",
       color: "text-emerald-500",
     },
     {

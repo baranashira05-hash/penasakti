@@ -101,7 +101,7 @@ export default function PrivacyPolicyPage() {
       icon: Mail,
       title: "Kontak Kami",
       content:
-        "Jika Anda memiliki pertanyaan, kekhawatiran, atau permintaan terkait Kebijakan Privasi ini atau perlindungan data pribadi di PenaSakti, silakan hubungi Data Protection Officer (DPO) kami melalui: Email: privacy@penasakti.com | Telp: (021) 123-4567 | Alamat: Jalan Baladewa No. 07, Kec. Cicendo, Kota Bandung.",
+        "Jika Anda memiliki pertanyaan, kekhawatiran, atau permintaan terkait Kebijakan Privasi ini atau perlindungan data pribadi di PenaSakti, silakan hubungi Data Protection Officer (DPO) kami melalui: Email: privacy@penasakti.com | Telp: 0895-3386-37405 | Alamat: Jalan Baladewa No. 07, Kec. Cicendo, Kota Bandung.",
     },
   ];
 
