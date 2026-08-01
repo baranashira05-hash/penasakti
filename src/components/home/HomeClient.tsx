@@ -96,7 +96,7 @@ export default function HomeClient({
                 <Link
                   key={a.id}
                   href={`/artikel/${a.slug}`}
-                  className="group flex gap-4 p-3 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-300 bg-white dark:bg-slate-800 transition-all"
+                  className="group flex gap-4 p-3 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-300 bg-white dark:bg-slate-800 transition-all min-w-0 overflow-hidden"
                 >
                   <div className="flex-shrink-0 relative w-24 h-16 sm:w-32 sm:h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700">
                     <ArticleImage

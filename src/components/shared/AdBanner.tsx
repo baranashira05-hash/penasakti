@@ -33,17 +33,20 @@ export default function AdBanner({ position, className }: AdBannerProps) {
 
   if (adCode) {
     return (
-      <div className={`w-full flex justify-center ${className || ""}`} data-ad-position={position}>
-        <div className={`${config.w} w-full`} dangerouslySetInnerHTML={{ __html: adCode }} />
+      <div className={`w-full flex justify-center overflow-hidden ${className || ""}`} data-ad-position={position}>
+        <div
+          className={`${config.w} w-full overflow-hidden [&_img]:max-w-full [&_iframe]:max-w-full [&_iframe]:w-full`}
+          dangerouslySetInnerHTML={{ __html: adCode }}
+        />
       </div>
     );
   }
 
   return (
-    <div className={`w-full flex justify-center ${className || ""}`} data-ad-position={position}>
+    <div className={`w-full flex justify-center overflow-hidden ${className || ""}`} data-ad-position={position}>
       <Link
         href="/pasang-iklan"
-        className={`${config.w} w-full ${config.h} bg-gray-100 dark:bg-slate-800/50 border border-dashed border-gray-300 dark:border-slate-600 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-blue-300 dark:hover:border-blue-600 transition-colors group`}
+        className={`${config.w} w-full ${config.h} bg-gray-100 dark:bg-slate-800/50 border border-dashed border-gray-300 dark:border-slate-600 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-blue-300 dark:hover:border-blue-600 transition-colors group overflow-hidden`}
       >
         <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-blue-500 transition-colors">
           {config.label}

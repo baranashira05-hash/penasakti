@@ -95,6 +95,10 @@
 @layer base {
   * {
     border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+  html {
+    overflow-x: hidden;
   }
   body {
     background-color: hsl(var(--background));
@@ -102,6 +106,8 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 }
 
@@ -137,6 +143,69 @@
 .article-content {
   font-size: 1.125rem;
   line-height: 1.8;
+  overflow-x: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Semua media & konten di dalam artikel tidak boleh melebihi lebar container */
+.article-content img,
+.article-content video,
+.article-content audio,
+.article-content embed,
+.article-content object,
+.article-content canvas,
+.article-content svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Iframe (YouTube, Google Maps, dll) */
+.article-content iframe {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* YouTube embed yang di-wrap TipTap */
+.article-content .youtube-wrapper,
+.article-content [data-youtube-video] {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+.article-content .youtube-wrapper iframe,
+.article-content [data-youtube-video] iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Tabel responsif */
+.article-content table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  -webkit-overflow-scrolling: touch;
+}
+.article-content td,
+.article-content th {
+  word-break: normal;
+  min-width: 80px;
+}
+
+/* Kode & pre */
+.article-content pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+}
+.article-content code {
+  word-break: break-all;
 }
 
 .article-content h2 { font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; }
@@ -156,6 +225,19 @@
 /* Scrollbar */
 .scrollbar-none::-webkit-scrollbar { display: none; }
 .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Global responsive media safety — semua gambar & embed tidak boleh melewati viewport */
+img,
+video,
+embed,
+object,
+iframe {
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
 
 /* Line clamp */
 .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }

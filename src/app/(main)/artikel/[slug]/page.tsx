@@ -306,7 +306,7 @@ export default async function ArticlePage({ params }: Props) {
         <AdBanner position="IN_ARTICLE" className="mb-6" />
 
         {/* Content */}
-        <div className="article-content prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: article.content }} />
+        <div className="article-content prose prose-lg max-w-none dark:prose-invert w-full overflow-x-hidden" dangerouslySetInnerHTML={{ __html: article.content }} />
 
         {/* Share */}
         <ArticleShare url={articleUrl} title={article.title} />
