@@ -73,8 +73,8 @@ export default function ContactPage() {
     {
       icon: MapPin,
       label: "Alamat Kantor",
-      value: "Jl. Jurnalisme No. 1, Jakarta Pusat 10110, Indonesia",
-      href: "https://maps.google.com/?q=Jakarta",
+      value: "Jalan Baladewa No. 07, Kec. Cicendo, Kota Bandung",
+      href: "https://maps.google.com/?q=Jalan+Baladewa+No+07+Cicendo+Bandung",
       color: "text-orange-500",
     },
     {

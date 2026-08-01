@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Edit3 } from "lucide-react";
+import { Edit3, MapPin } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Redaksi",
@@ -71,6 +71,19 @@ export default function RedaksiPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Alamat Redaksi */}
+        <section className="mb-12">
+          <div className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border">
+            <div className="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center flex-shrink-0">
+              <MapPin className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-0.5">Alamat Redaksi</p>
+              <p className="font-semibold">Jalan Baladewa No. 07, Kec. Cicendo, Kota Bandung</p>
+            </div>
           </div>
         </section>
 
