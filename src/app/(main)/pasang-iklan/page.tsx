@@ -5,8 +5,10 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   Megaphone, BarChart3, Users, Eye, MousePointer, Target,
-  CheckCircle, ArrowRight, Star, Zap, Shield, Globe
+  CheckCircle, ArrowRight, Star, Zap, Shield, Globe, MessageCircle
 } from "lucide-react";
+
+const WA_NUMBER = "6282129553815";
 
 const AD_PACKAGES = [
   {
@@ -52,6 +54,23 @@ function formatPrice(n: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
 }
 
+function buildWaLink(pkg: typeof AD_PACKAGES[0]) {
+  const msg =
+    `Halo Admin PenaSakti 👋\n\n` +
+    `Saya tertarik dengan *Paket Iklan ${pkg.name}*:\n` +
+    `📌 Posisi: ${pkg.position}\n` +
+    `⏱ Durasi: ${pkg.duration}\n` +
+    `📊 Estimasi Impresi: ${pkg.impressions}\n` +
+    `💰 Harga: ${formatPrice(pkg.price)}/${pkg.duration}\n` +
+    `✅ Fitur:\n${pkg.features.map(f => `   • ${f}`).join("\n")}\n\n` +
+    `Mohon informasi lebih lanjut. Terima kasih!`;
+  return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
+
+const WA_GENERAL_LINK = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(
+  "Halo Admin PenaSakti 👋\n\nSaya ingin mengetahui lebih lanjut tentang paket iklan di PenaSakti. Bisa bantu saya?"
+)}`;
+
 export default function PasangIklanPage() {
   const { data: session } = useSession();
 
@@ -71,12 +90,15 @@ export default function PasangIklanPage() {
             Promosikan bisnis Anda ke 2.5 juta+ pembaca aktif. Iklan ditampilkan di portal berita terpercaya Indonesia.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/pasang-iklan/daftar"
+            <a
+              href={WA_GENERAL_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-white text-indigo-700 px-8 py-3.5 rounded-xl font-bold hover:bg-indigo-50 transition-colors"
             >
-              Mulai Beriklan <ArrowRight className="w-5 h-5" />
-            </Link>
+              <MessageCircle className="w-5 h-5" />
+              Hubungi via WhatsApp
+            </a>
             <a href="#paket" className="inline-flex items-center justify-center gap-2 border border-white/30 text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-white/10 transition-colors">
               Lihat Paket Harga
             </a>
@@ -155,12 +177,20 @@ export default function PasangIklanPage() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href="/pasang-iklan/daftar"
-                  className={`block text-center py-3 rounded-xl font-semibold text-sm transition-colors ${pkg.popular ? "bg-indigo-600 hover:bg-indigo-700 text-white" : "bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-900 dark:text-white"}`}
+                {/* Tombol Pilih Paket → WhatsApp */}
+                <a
+                  href={buildWaLink(pkg)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-colors ${
+                    pkg.popular
+                      ? "bg-green-500 hover:bg-green-600 text-white"
+                      : "bg-gray-100 dark:bg-slate-700 hover:bg-green-500 hover:text-white dark:hover:bg-green-600 text-gray-900 dark:text-white"
+                  }`}
                 >
+                  <MessageCircle className="w-4 h-4" />
                   Pilih Paket
-                </Link>
+                </a>
               </div>
             ))}
           </div>
@@ -171,10 +201,16 @@ export default function PasangIklanPage() {
       <div className="container mx-auto px-4 py-16 text-center">
         <Zap className="w-10 h-10 text-indigo-600 dark:text-indigo-400 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Siap Meningkatkan Bisnis Anda?</h2>
-        <p className="text-gray-600 dark:text-gray-400 max-w-lg mx-auto mb-6">Daftar sekarang dan mulai menjangkau jutaan pembaca PenaSakti dalam hitungan menit.</p>
-        <Link href="/pasang-iklan/daftar" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-xl font-bold transition-colors">
-          Daftar Sebagai Advertiser <ArrowRight className="w-5 h-5" />
-        </Link>
+        <p className="text-gray-600 dark:text-gray-400 max-w-lg mx-auto mb-6">Hubungi kami via WhatsApp dan mulai menjangkau jutaan pembaca PenaSakti dalam hitungan menit.</p>
+        <a
+          href={WA_GENERAL_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold transition-colors"
+        >
+          <MessageCircle className="w-5 h-5" />
+          Hubungi via WhatsApp <ArrowRight className="w-5 h-5" />
+        </a>
       </div>
     </div>
   );
