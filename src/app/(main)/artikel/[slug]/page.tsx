@@ -312,6 +312,9 @@ export default async function ArticlePage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
 
+        {/* Google Reader Revenue Manager — inline CTA */}
+        <div rrm-inline-cta="e82b7647-1ba8-4246-8544-1843ce50e477" className="my-6" />
+
         {/* Share */}
         <ArticleShare url={articleUrl} title={article.title} />
 
