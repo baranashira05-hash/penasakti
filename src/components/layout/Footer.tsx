@@ -32,7 +32,7 @@ export default function Footer() {
               <img
                 src="/logo-penasakti.png"
                 alt="PenaSakti"
-                className="h-10 w-auto brightness-110 contrast-110"
+                className="h-10 w-auto max-w-[160px] object-contain brightness-110 contrast-110"
               />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-6">

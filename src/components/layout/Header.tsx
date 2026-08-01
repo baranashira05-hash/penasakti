@@ -75,11 +75,15 @@ export default function Header() {
         )}
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16 gap-4">
+          <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4 min-w-0 overflow-hidden">
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0">
-              <div className="bg-white dark:bg-white rounded-lg p-1.5">
-                <img src="/logo-penasakti.png" alt="PenaSakti" className="h-8 w-auto" />
+            <Link href="/" className="flex-shrink-0 min-w-0">
+              <div className="bg-white dark:bg-white rounded-lg p-1 flex items-center">
+                <img
+                  src="/logo-penasakti.png"
+                  alt="PenaSakti"
+                  className="h-9 w-auto max-w-[140px] sm:max-w-[160px] object-contain"
+                />
               </div>
             </Link>
 
