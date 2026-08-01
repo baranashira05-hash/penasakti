@@ -39,7 +39,7 @@ function RedaksiLoginForm() {
       const session = await res.json();
 
       if (session?.user?.role !== "SUPER_ADMIN") {
-        // Bukan SUPER_ADMIN — sign out dan tampilkan pesan
+        // Bukan SUPER_ADMIN — sign out dan tolak akses
         await fetch("/api/auth/signout", { method: "POST" });
         toast.error("Akses ditolak. Hanya owner yang dapat masuk ke panel ini.");
         setLoading(false);
@@ -62,11 +62,7 @@ function RedaksiLoginForm() {
         <div className="w-full max-w-sm">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 mb-8">
-            <img
-              src="/logo-penasakti.png"
-              alt="PenaSakti"
-              className="h-10 w-auto"
-            />
+            <img src="/logo-penasakti.png" alt="PenaSakti" className="h-10 w-auto" />
           </Link>
 
           {/* Badge admin */}
@@ -120,11 +116,7 @@ function RedaksiLoginForm() {
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4.5 h-4.5" />
-                  ) : (
-                    <Eye className="w-4.5 h-4.5" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                 </button>
               </div>
             </div>
@@ -170,7 +162,7 @@ function RedaksiLoginForm() {
           <div className="mt-8 grid grid-cols-3 gap-4 text-sm text-white/60">
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
               <p className="text-white font-semibold text-lg">Edit</p>
-              <p>Foto & Nama</p>
+              <p>Foto &amp; Nama</p>
             </div>
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
               <p className="text-white font-semibold text-lg">Atur</p>
@@ -182,7 +174,6 @@ function RedaksiLoginForm() {
             </div>
           </div>
         </div>
-        {/* Dekoratif */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-32 -right-32 w-96 h-96 bg-penasakti-blue/20 rounded-full blur-3xl" />
           <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
@@ -192,7 +183,7 @@ function RedaksiLoginForm() {
   );
 }
 
-export default function RedaksiLoginPage() {
+export default function RedaksiAdminLoginPage() {
   return (
     <Suspense
       fallback={
