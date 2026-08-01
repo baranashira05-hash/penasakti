@@ -180,4 +180,56 @@ Semua halaman sudah punya:
 
 ---
 
-**Last Updated:** 2026-07-31
+## 🚀 Google Fast Indexing — Setup IndexNow & Publish Hooks
+
+### Fitur yang sudah diimplementasikan:
+
+Setiap kali admin klik **"Tayangkan Sekarang"**, sistem otomatis melakukan:
+
+1. ✅ **ISR Cache Revalidation** — halaman artikel, homepage, kategori langsung diperbarui
+2. ✅ **IndexNow ping** — memberitahu Google, Bing, Yandex artikel baru secara instan
+3. ✅ **Google Indexing API** (opsional) — push langsung ke Google Search
+
+### Environment Variables Wajib untuk Fast Indexing:
+
+| Variable | Value | Keterangan |
+|---|---|---|
+| `REVALIDATE_SECRET` | string acak panjang | Secret untuk endpoint `/api/revalidate` |
+| `INDEXNOW_KEY` | hex 32-64 karakter | Daftarkan di [indexnow.org](https://www.indexnow.org/) |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | JSON string | Opsional — Google Indexing API |
+
+### Cara Generate INDEXNOW_KEY:
+
+```bash
+# Di terminal, generate key hex 32 karakter:
+node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
+```
+
+Contoh output: `a1b2c3d4e5f6...` (32 karakter hex)
+
+Tambahkan key ini ke Vercel env vars sebagai `INDEXNOW_KEY`.
+
+### Cara Setup Google Indexing API (Opsional tapi sangat direkomendasikan):
+
+1. Buka [Google Cloud Console](https://console.cloud.google.com)
+2. Aktifkan **Indexing API**
+3. Buat **Service Account** → download JSON credentials
+4. Di [Search Console](https://search.google.com/search-console) → Settings → Users and permissions → tambahkan email service account sebagai **Owner**
+5. Paste isi JSON ke env var `GOOGLE_SERVICE_ACCOUNT_JSON` di Vercel
+
+### Submit Sitemap ke Google Search Console:
+
+```
+https://www.penasakti.com/sitemap-index.xml
+https://www.penasakti.com/news-sitemap.xml
+```
+
+### Submit ke Google News Publisher Center:
+
+1. Buka [Google News Publisher Center](https://publishercenter.google.com)
+2. Klaim property `penasakti.com`
+3. Submit URL News Sitemap: `https://www.penasakti.com/news-sitemap.xml`
+
+---
+
+**Last Updated:** 2026-08-01

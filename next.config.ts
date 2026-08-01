@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/news-sitemap.xml",   destination: "/api/seo/news-sitemap" },
       { source: "/sitemap-index.xml",  destination: "/api/seo/sitemap-index" },
+      // IndexNow key verification file — tidak perlu file statis di /public
+      { source: "/:key([0-9a-f]{32,64}).txt", destination: "/api/seo/indexnow-key" },
     ];
   },
 

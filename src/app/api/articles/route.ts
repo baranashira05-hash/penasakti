@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/auth";
-import { notifyGoogleIndexing, pingSitemaps } from "@/lib/google-indexing";
+import { runAllPublishHooks } from "@/lib/publish-hooks";
 
 export const dynamic = "force-dynamic";
 
@@ -148,16 +148,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Jika artikel langsung PUBLISHED → kirim notifikasi ke Google (fire & forget)
+    // ── Publish hooks: revalidate cache + ping IndexNow ──────────────
     if (status === "PUBLISHED") {
-      Promise.all([
-        notifyGoogleIndexing(slug, "URL_UPDATED"),
-        pingSitemaps(),
-      ]).catch((e) => console.error("[GoogleIndexing] background error:", e));
+      // Ambil kategori slug untuk revalidasi halaman kategori
+      let categorySlug: string | null = null;
+      try {
+        const cat = await prisma.category.findUnique({ where: { id: categoryId }, select: { slug: true } });
+        categorySlug = cat?.slug ?? null;
+      } catch {}
+
+      // Fire and forget — jangan await agar response cepat dikembalikan ke client
+      runAllPublishHooks({
+        slug: article.slug,
+        categorySlug,
+        isBreaking: false,
+        isFeatured: false,
+      }).catch((err) => console.error("[POST /api/articles] publish hooks error:", err));
     }
 
     return NextResponse.json({ success: true, data: { ...article, viewCount: Number(article.viewCount) } }, { status: 201 });
   } catch (error) {
+    console.error("[/api/articles POST]", error);
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : "Gagal menyimpan artikel",

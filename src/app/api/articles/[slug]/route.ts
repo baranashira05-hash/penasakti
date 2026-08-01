@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { notifyGoogleIndexing, pingSitemaps } from "@/lib/google-indexing";
+import { runAllPublishHooks } from "@/lib/publish-hooks";
 
 export const dynamic = "force-dynamic";
 
@@ -79,25 +79,30 @@ export async function PUT(
         status: body.status ?? article.status,
         metaTitle: body.metaTitle ?? article.metaTitle,
         metaDesc: body.metaDesc ?? article.metaDesc,
+        metaKeywords: body.metaKeywords ?? article.metaKeywords,
         featuredImage: body.featuredImage ?? article.featuredImage,
-        // Set publishedAt saat pertama kali di-publish
-        ...(body.status === "PUBLISHED" && !article.publishedAt
-          ? { publishedAt: new Date() }
-          : {}),
+        // Set publishedAt jika baru dipublish
+        publishedAt:
+          body.status === "PUBLISHED" && !article.publishedAt
+            ? new Date()
+            : article.publishedAt ?? undefined,
+      },
+      include: {
+        category: { select: { slug: true } },
       },
     });
 
-    // Jika artikel di-publish atau di-update → kirim notif ke Google
-    if (body.status === "PUBLISHED" || article.status === "PUBLISHED") {
-      Promise.all([
-        notifyGoogleIndexing(updated.slug, "URL_UPDATED"),
-        pingSitemaps(),
-      ]).catch((e) => console.error("[GoogleIndexing] update error:", e));
-    }
+    // ── Publish hooks: revalidate cache + ping IndexNow ──────────────
+    const wasPublished = article.status !== "PUBLISHED" && body.status === "PUBLISHED";
+    const isPublished = updated.status === "PUBLISHED";
 
-    // Jika artikel dihapus dari index (ARCHIVED/TRASH)
-    if (body.status === "ARCHIVED" || body.status === "TRASH") {
-      notifyGoogleIndexing(updated.slug, "URL_DELETED").catch(() => {});
+    if (wasPublished || isPublished) {
+      runAllPublishHooks({
+        slug: updated.slug,
+        categorySlug: updated.category?.slug ?? null,
+        isBreaking: updated.isBreaking ?? false,
+        isFeatured: updated.isFeatured ?? false,
+      }).catch((err) => console.error("[PUT /api/articles] publish hooks error:", err));
     }
 
     return NextResponse.json({ success: true, data: { ...updated, viewCount: Number(updated.viewCount) } });

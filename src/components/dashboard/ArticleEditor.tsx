@@ -114,8 +114,13 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
       const method = mode === "create" ? "POST" : "PUT";
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error();
-      toast.success(saveStatus === "PUBLISHED" ? "Artikel berhasil ditayangkan!" : "Tersimpan sebagai draft");
-      if (saveStatus === "PUBLISHED") router.push("/dashboard/artikel");
+
+      if (saveStatus === "PUBLISHED") {
+        toast.success("✅ Artikel berhasil ditayangkan! Google akan mengindeks dalam beberapa menit.", { duration: 6000 });
+        router.push("/dashboard/artikel");
+      } else {
+        toast.success("Tersimpan sebagai draft");
+      }
     } catch {
       toast.error("Gagal menyimpan artikel");
     } finally {
@@ -492,6 +497,29 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
                 <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{metaDesc || excerpt || "Deskripsi artikel akan muncul di sini..."}</p>
               </div>
             )}
+
+            {/* SEO Checklist */}
+            <div className="p-4 bg-muted/20 rounded-xl border border-border">
+              <p className="text-xs font-bold mb-3 flex items-center gap-1.5">
+                <span>📋</span> SEO Checklist Google News
+              </p>
+              <ul className="space-y-1.5">
+                {[
+                  { ok: title.trim().length >= 10 && title.trim().length <= 100, label: `Judul 10–100 karakter (${title.trim().length})` },
+                  { ok: (metaTitle || title).length <= 60, label: `Meta title ≤60 karakter (${(metaTitle || title).length})` },
+                  { ok: (metaDesc || excerpt).length >= 50 && (metaDesc || excerpt).length <= 160, label: `Meta description 50–160 karakter (${(metaDesc || excerpt).length})` },
+                  { ok: !!featuredImage, label: "Foto utama (featured image) tersedia" },
+                  { ok: !!category, label: "Kategori dipilih" },
+                  { ok: tags.length >= 2, label: `Minimal 2 tag (${tags.length} tag)` },
+                  { ok: (editor?.getText().trim().length ?? 0) >= 300, label: `Konten minimal 300 karakter` },
+                ].map(({ ok, label }) => (
+                  <li key={label} className="flex items-center gap-2 text-xs">
+                    <span className={ok ? "text-green-500" : "text-amber-500"}>{ok ? "✅" : "⚠️"}</span>
+                    <span className={ok ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
 
