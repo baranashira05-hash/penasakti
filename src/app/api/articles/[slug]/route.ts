@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { notifyGoogleIndexing, pingSitemaps } from "@/lib/google-indexing";
 
 export const dynamic = "force-dynamic";
 
@@ -79,8 +80,25 @@ export async function PUT(
         metaTitle: body.metaTitle ?? article.metaTitle,
         metaDesc: body.metaDesc ?? article.metaDesc,
         featuredImage: body.featuredImage ?? article.featuredImage,
+        // Set publishedAt saat pertama kali di-publish
+        ...(body.status === "PUBLISHED" && !article.publishedAt
+          ? { publishedAt: new Date() }
+          : {}),
       },
     });
+
+    // Jika artikel di-publish atau di-update → kirim notif ke Google
+    if (body.status === "PUBLISHED" || article.status === "PUBLISHED") {
+      Promise.all([
+        notifyGoogleIndexing(updated.slug, "URL_UPDATED"),
+        pingSitemaps(),
+      ]).catch((e) => console.error("[GoogleIndexing] update error:", e));
+    }
+
+    // Jika artikel dihapus dari index (ARCHIVED/TRASH)
+    if (body.status === "ARCHIVED" || body.status === "TRASH") {
+      notifyGoogleIndexing(updated.slug, "URL_DELETED").catch(() => {});
+    }
 
     return NextResponse.json({ success: true, data: { ...updated, viewCount: Number(updated.viewCount) } });
   } catch (error) {

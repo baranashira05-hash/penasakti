@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/auth";
+import { notifyGoogleIndexing, pingSitemaps } from "@/lib/google-indexing";
 
 export const dynamic = "force-dynamic";
 
@@ -147,9 +148,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Jika artikel langsung PUBLISHED → kirim notifikasi ke Google (fire & forget)
+    if (status === "PUBLISHED") {
+      Promise.all([
+        notifyGoogleIndexing(slug, "URL_UPDATED"),
+        pingSitemaps(),
+      ]).catch((e) => console.error("[GoogleIndexing] background error:", e));
+    }
+
     return NextResponse.json({ success: true, data: { ...article, viewCount: Number(article.viewCount) } }, { status: 201 });
   } catch (error) {
-    console.error("[/api/articles POST]", error);
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : "Gagal menyimpan artikel",
