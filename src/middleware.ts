@@ -60,7 +60,7 @@ const RATE_LIMIT_WINDOW = 60; // seconds
 const RATE_LIMIT_MAX = {
   default: 120,
   api: 60,
-  auth: 5,       // Ketat untuk login (brute force protection)
+  auth: 20,      // Login — cukup longgar untuk NextAuth internal requests
   comments: 20,
   upload: 5,
   scrape: 30,    // Halaman artikel per menit per IP
@@ -89,7 +89,11 @@ function getClientIp(req: NextRequest): string {
 
 function getRateLimitBucket(req: NextRequest): { key: string; limit: number } {
   const path = req.nextUrl.pathname;
-  if (path.startsWith("/api/auth/") || path === "/login" || path === "/register") {
+  if (path === "/login" || path === "/register") {
+    return { key: "auth", limit: RATE_LIMIT_MAX.auth };
+  }
+  // NextAuth internal routes — lebih longgar karena 1 login = banyak internal request
+  if (path.startsWith("/api/auth/")) {
     return { key: "auth", limit: RATE_LIMIT_MAX.auth };
   }
   if (path.startsWith("/api/og")) {
