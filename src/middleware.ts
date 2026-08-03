@@ -266,10 +266,13 @@ export async function middleware(req: NextRequest) {
   const ip = getClientIp(req);
 
   // ── 1. Canonical domain redirect ───────────────────────────────────
+  // Redirect ke domain canonical HANYA jika custom domain sudah aktif.
+  // Izinkan *.vercel.app agar preview/production tanpa custom domain tetap jalan.
   if (
     host &&
     !host.includes(CANONICAL_HOST) &&
     !host.includes("localhost") &&
+    !host.includes("vercel.app") &&
     process.env.NODE_ENV === "production"
   ) {
     const url = req.nextUrl.clone();
