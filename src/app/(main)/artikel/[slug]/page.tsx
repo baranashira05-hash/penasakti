@@ -7,6 +7,9 @@ import Breadcrumb from "@/components/shared/Breadcrumb";
 import AdBanner from "@/components/shared/AdBanner";
 import ArticleImage from "@/components/shared/ArticleImage";
 import ArticleShare from "@/components/article/ArticleShare";
+import ContentProtection from "@/components/shared/ContentProtection";
+import ImageProtection from "@/components/shared/ImageProtection";
+import InvisibleWatermark from "@/components/shared/InvisibleWatermark";
 
 // Halaman dirender secara dynamic agar selalu fresh
 // Crawler Google akan tetap bisa mengindeks karena ISR diaktifkan di bawah
@@ -251,6 +254,11 @@ export default async function ArticlePage({ params }: Props) {
         ]}
       />
 
+      <ContentProtection
+        articleUrl={articleUrl}
+        articleTitle={article.title}
+      >
+      <ImageProtection />
       <article className="max-w-4xl mx-auto mt-6">
         {/* Category */}
         {article.category && (
@@ -308,9 +316,10 @@ export default async function ArticlePage({ params }: Props) {
 
         {/* Content */}
         <div
-          className="article-content prose prose-lg max-w-none dark:prose-invert w-full"
+          className="article-content prose prose-lg max-w-none dark:prose-invert w-full relative"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
+        <InvisibleWatermark articleUrl={articleUrl} articleId={article.id} />
 
         {/* Google Reader Revenue Manager — inline CTA */}
         <div rrm-inline-cta="e82b7647-1ba8-4246-8544-1843ce50e477" className="my-6" />
@@ -338,6 +347,7 @@ export default async function ArticlePage({ params }: Props) {
           </Link>
         </div>
       </article>
+      </ContentProtection>
       </div>
     </div>
   );
