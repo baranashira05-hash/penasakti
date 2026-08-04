@@ -58,12 +58,12 @@ const ALLOWED_BOT_PATTERNS = /googlebot|google-inspectiontool|bingbot|yandexbot|
 // ── Rate limiting configuration ───────────────────────────────────────
 const RATE_LIMIT_WINDOW = 60; // seconds
 const RATE_LIMIT_MAX = {
-  default: 120,
-  api: 60,
+  default: 300,
+  api: 120,
   auth: 20,      // Login — cukup longgar untuk NextAuth internal requests
-  comments: 20,
-  upload: 5,
-  scrape: 30,    // Halaman artikel per menit per IP
+  comments: 30,
+  upload: 10,
+  scrape: 60,    // Halaman artikel per menit per IP
 };
 
 // ── Helper functions ──────────────────────────────────────────────────
