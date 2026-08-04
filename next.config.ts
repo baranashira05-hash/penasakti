@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**" },
       // Domain spesifik lain
       { protocol: "http",  hostname: "cdn.penasakti.com" },
+      // Hosting lama (gambar WordPress)
+      { protocol: "http",  hostname: "103.163.139.88" },
     ],
     // Prioritaskan WebP/AVIF untuk ukuran file lebih kecil
     formats: ["image/webp", "image/avif"],

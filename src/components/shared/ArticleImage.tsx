@@ -56,7 +56,9 @@ function Placeholder({ category }: { category?: string }) {
  */
 function isValidSrc(src: string): boolean {
   if (!src) return false;
-  // Server WordPress lama sudah mati — jangan coba load
+  // Izinkan gambar dari hosting lama via IP (masih aktif)
+  if (src.includes("103.163.139.88")) return true;
+  // Blokir URL wp-content dari domain penasakti (sudah redirect ke Vercel)
   if (src.includes("penasakti.com/wp-content/uploads/")) return false;
   if (src.includes("cdn.penasakti.com/wp-content/")) return false;
   // Semua URL https/http/relatif/data valid
