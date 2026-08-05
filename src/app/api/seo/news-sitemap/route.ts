@@ -27,14 +27,16 @@ export async function GET() {
   }[] = [];
 
   try {
-    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    // Gunakan window 7 hari untuk news sitemap
+    // Google News menerima artikel hingga 2 hari, tapi kita perluas agar tidak kosong
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     const dbArticles = await prisma.article.findMany({
       where: {
         status: "PUBLISHED",
         publishedAt: {
           not: null,
-          gte: twoDaysAgo,
+          gte: sevenDaysAgo,
         },
       },
       orderBy: { publishedAt: "desc" },
