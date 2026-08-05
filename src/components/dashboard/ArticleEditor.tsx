@@ -279,13 +279,14 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
                 if (!file) return;
                 const fd = new FormData();
                 fd.append("file", file);
-                toast.loading("Mengupload gambar...", { id: "upload" });
+                fd.append("quality", "80");
+                toast.loading("Mengkompresi & upload gambar...", { id: "upload" });
                 try {
                   const res = await fetch("/api/upload", { method: "POST", body: fd });
                   const data = await res.json();
                   if (data.success) {
                     setFeaturedImage(data.data.url);
-                    toast.success("Gambar berhasil diupload!", { id: "upload" });
+                    toast.success(`Gambar berhasil! ${data.data.originalSize} → ${data.data.compressedSize} (hemat ${data.data.savings})`, { id: "upload", duration: 5000 });
                   } else {
                     toast.error(data.error || "Upload gagal", { id: "upload" });
                   }
@@ -297,6 +298,7 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
             <ImageIcon className="w-8 h-8 text-muted-foreground" />
             <span className="text-sm font-medium text-muted-foreground">Klik untuk pilih gambar</span>
             <span className="text-xs text-muted-foreground">JPG, PNG, WebP — Maks 10MB</span>
+            <span className="text-xs text-green-600">✓ Auto kompresi WebP (hemat 50-80%)</span>
           </label>
         )}
         <div className="mt-2">
