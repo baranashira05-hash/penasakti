@@ -323,8 +323,11 @@ export async function middleware(req: NextRequest) {
   }
 
   // ── 6. Rate limiting ───────────────────────────────────────────────
+  // Sementara dinonaktifkan - aktifkan kembali setelah website stabil
+  // const { key: bucket, limit } = getRateLimitBucket(req);
+  // const rateResult = await checkRateLimit(ip, bucket, limit);
   const { key: bucket, limit } = getRateLimitBucket(req);
-  const rateResult = await checkRateLimit(ip, bucket, limit);
+  const rateResult = { allowed: true, remaining: limit, resetAt: 0 };
 
   if (!rateResult.allowed) {
     logToConsole("rate_limited", ip, pathname, `bucket=${bucket}`);
