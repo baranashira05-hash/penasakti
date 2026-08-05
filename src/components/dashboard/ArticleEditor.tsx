@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -151,6 +151,34 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
     }
   };
 
+  // ── Upload gambar ke editor (file picker, bukan URL prompt) ─────────
+  const editorImageInputRef = useRef<HTMLInputElement>(null);
+  const handleEditorImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("quality", "80");
+    toast.loading("Mengupload gambar ke artikel...", { id: "editor-img" });
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.success) {
+        editor.chain().focus().insertContent({
+          type: "resizableImage",
+          attrs: { src: data.data.url, alt: title || "Gambar artikel PenaSakti", width: "100%", align: "center" },
+        }).run();
+        toast.success(`Gambar ditambahkan! (${data.data.compressedSize}, hemat ${data.data.savings})`, { id: "editor-img", duration: 4000 });
+      } else {
+        toast.error(data.error || "Upload gagal", { id: "editor-img" });
+      }
+    } catch {
+      toast.error("Upload gambar gagal", { id: "editor-img" });
+    }
+    // Reset input agar bisa upload file yang sama lagi
+    if (editorImageInputRef.current) editorImageInputRef.current.value = "";
+  };
+
   // ── Toolbar buttons config ──────────────────────────────────────────
   const toolbarButtons = editor ? [
     { icon: Undo, action: () => editor.chain().focus().undo().run(), title: "Undo" },
@@ -170,7 +198,7 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
     { icon: Quote, action: () => editor.chain().focus().toggleBlockquote().run(), title: "Kutipan", active: editor.isActive("blockquote") },
     { type: "sep" as const },
     { icon: Link2, action: () => { const url = prompt("Masukkan URL:"); if (url) editor.chain().focus().setLink({ href: url }).run(); }, title: "Link", active: editor.isActive("link") },
-    { icon: ImageIcon, action: () => { const url = prompt("URL gambar:"); if (url) editor.chain().focus().insertContent({ type: "resizableImage", attrs: { src: url, alt: "", width: "100%", align: "center" } }).run(); }, title: "Gambar" },
+    { icon: ImageIcon, action: () => { editorImageInputRef.current?.click(); }, title: "Upload Gambar" },
     { icon: TableIcon, action: () => { const url = prompt("URL YouTube:"); if (url) editor.commands.setYoutubeVideo({ src: url }); }, title: "YouTube" },
     { icon: TableIcon, action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), title: "Tabel" },
   ] : [];
@@ -412,6 +440,14 @@ export default function ArticleEditor({ mode, initialData }: ArticleEditorProps)
             {/* Toolbar */}
             {editor && (
               <div className="border-b border-border p-2 flex flex-wrap gap-1 bg-muted/30">
+                {/* Hidden file input untuk upload gambar ke editor */}
+                <input
+                  ref={editorImageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleEditorImageUpload}
+                />
                 {toolbarButtons.map((btn, i) => {
                   if (btn.type === "sep") return <div key={i} className="w-px h-6 bg-border mx-0.5 self-center" />;
                   const Icon = btn.icon!;
