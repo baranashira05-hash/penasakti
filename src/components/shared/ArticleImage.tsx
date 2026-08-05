@@ -130,7 +130,8 @@ export default function ArticleImage({
   const unoptimized = shouldBypassNextOptimization(finalSrc);
 
   const commonProps = {
-    alt: alt || "",
+    alt: alt || "Gambar artikel PenaSakti",
+    title: alt || undefined,
     className,
     priority: priority ?? false,
     quality: unoptimized ? undefined : quality,
